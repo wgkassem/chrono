@@ -233,9 +233,9 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     ostream << "VECTORS Forces float\n";
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
         unsigned int i = meshSoup->triangleFamily_ID[tri_i];
-        double fx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 0];
-        double fy = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 1];
-        double fz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 2];
+        double fx = meshSoup->generalizedForcesPerFamily[6 * i + 0];
+        double fy = meshSoup->generalizedForcesPerFamily[6 * i + 1];
+        double fz = meshSoup->generalizedForcesPerFamily[6 * i + 2];
         ostream << fx << " " << fy << " " << fz << "\n";
         ostream << fx << " " << fy << " " << fz << "\n";
         ostream << fx << " " << fy << " " << fz << "\n";
