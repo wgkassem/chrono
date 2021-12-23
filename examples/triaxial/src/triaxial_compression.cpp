@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
                 // change to cylinderical coordinates
                 thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
                 theta = (float) (imesh - 1) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                if (imesh==0 || imesh = nmeshes-1) { theta = 0.f;}
+                if (imesh==0 || imesh == nmeshes-1) { theta = 0.f;}
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
