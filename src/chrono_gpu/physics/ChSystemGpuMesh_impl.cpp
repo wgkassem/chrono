@@ -230,15 +230,18 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     }
 
     ostream << "\n\n";
+    ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup;
     ostream << "VECTORS Forces float\n";
+    
+    double force_factor = FORCE_SU2UU;
+    double torque_factor = TORQUE_SU2UU;
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
+        
         unsigned int i = meshSoup->triangleFamily_ID[tri_i];
         double fx = meshSoup->generalizedForcesPerFamily[6 * i + 0];
         double fy = meshSoup->generalizedForcesPerFamily[6 * i + 1];
         double fz = meshSoup->generalizedForcesPerFamily[6 * i + 2];
-        ostream << fx << " " << fy << " " << fz << "\n";
-        ostream << fx << " " << fy << " " << fz << "\n";
-        ostream << fx << " " << fy << " " << fz << "\n";
+        ostream << sprintf("%6f %6f %6f\n", fx, fy, fz);
     }
 
     outfile << ostream.str();
