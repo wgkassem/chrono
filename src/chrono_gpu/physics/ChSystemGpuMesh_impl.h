@@ -131,6 +131,11 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                      const Vector& global_translation = {0.0, 0.0, 0.0},
                      const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
 
+    /// Write visualization files for triangle meshes with current positions and forces as attributes
+    void WriteMeshesForces(std::string outfilename,
+                     const Vector& global_translation = {0.0, 0.0, 0.0},
+                     const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
+    
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
 
