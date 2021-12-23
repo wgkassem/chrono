@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
             sprintf(filenameforce, "%s/meshforce%06d.csv", out_dir.c_str(), step);
 
             gpu_sys.WriteFile(std::string(filename));
-            gpu_sys.WriteMeshes(filenamemesh);
+            gpu_sys.WriteMeshesForces(filenamemesh);
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
             sprintf(filenameforce, "%s/meshforce%06d.csv", out_dir.c_str(), step);
 
             gpu_sys.WriteFile(std::string(filename));
-            gpu_sys.WriteMeshes(filenamemesh);
+            gpu_sys.WriteMeshesForces(filenamemesh);
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
