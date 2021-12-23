@@ -230,7 +230,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     }
 
     ostream << "\n\n";
-    ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup;
+    ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup << "\n";
     ostream << "VECTORS Forces float\n";
     
     double force_factor = FORCE_SU2UU;
