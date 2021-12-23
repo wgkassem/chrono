@@ -238,10 +238,10 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
         
         unsigned int i = meshSoup->triangleFamily_ID[tri_i];
-        double fx = meshSoup->generalizedForcesPerFamily[6 * i + 0];
-        double fy = meshSoup->generalizedForcesPerFamily[6 * i + 1];
-        double fz = meshSoup->generalizedForcesPerFamily[6 * i + 2];
-        printf("i = %d\n %3f, %3f, %3f", i, fx, fy, fz);
+        double fx = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 0];
+        double fy = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 1];
+        double fz = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 2];
+        printf("i = %d %3f, %3f, %3f \n", i, fx, fy, fz);
         ostream << fx << " " << fy << " " << fz << "\n";
     }
 
