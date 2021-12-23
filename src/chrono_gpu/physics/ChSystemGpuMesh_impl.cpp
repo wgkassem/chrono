@@ -241,7 +241,8 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         double fx = meshSoup->generalizedForcesPerFamily[6 * i + 0];
         double fy = meshSoup->generalizedForcesPerFamily[6 * i + 1];
         double fz = meshSoup->generalizedForcesPerFamily[6 * i + 2];
-        ostream << printf("%6f %6f %6f\n", fx, fy, fz);
+        printf("i = %d\n %3f, %3f, %3f", i, fx, fy, fz);
+        ostream << fx << " " << fy << " " << fz << "\n";
     }
 
     outfile << ostream.str();
