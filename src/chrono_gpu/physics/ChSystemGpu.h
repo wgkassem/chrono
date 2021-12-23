@@ -322,6 +322,11 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
                      const Vector& global_translation = {0.0, 0.0, 0.0},
                      const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
 
+    /// Write visualization files for triangle meshes with current positions and forces on the 3 nodes of each triangle mesh
+    void WriteMeshesForces(std::string outfilename,
+                     const Vector& global_translation = {0.0, 0.0, 0.0},
+                     const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
+
     /// Enable contact with individual families
     void disable_collision_with_family(unsigned int fam);
 

@@ -598,6 +598,12 @@ void ChSystemGpuMesh::WriteMeshes(std::string outfilename,
     sys_trimesh->WriteMeshes(outfilename, global_translation, global_rotation);
 }
 
+void ChSystemGpuMesh::WriteMeshesForces(std::string outfilename,
+                                  const Vector& global_translation,
+                                  const Quaternion& global_rotation) const {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->WriteMeshesForces(outfilename, global_translation, global_rotation);
+}
 // -----------------------------------------------------------------------------
 
 void ChSystemGpuMesh::disable_collision_with_family(unsigned int fam) {
