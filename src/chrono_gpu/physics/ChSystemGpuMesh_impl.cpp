@@ -192,7 +192,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
 
     ostream << "DATASET UNSTRUCTURED_GRID\n";
     ostream << "POINTS " << meshSoup->nTrianglesInSoup * 3 << " float\n";
-
+    std::vector<ChVector<>> cell_cyl_pos;
     // Write all vertices
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
         float3 p1 = make_float3(meshSoup->node1[tri_i].x, meshSoup->node1[tri_i].y, meshSoup->node1[tri_i].z);
@@ -215,6 +215,10 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         ostream << point1.x() << " " << point1.y() << " " << point1.z() << "\n";
         ostream << point2.x() << " " << point2.y() << " " << point2.z() << "\n";
         ostream << point3.x() << " " << point3.y() << " " << point3.z() << "\n";
+
+        double r = sqrt(point1.x() * point1.x() + point1.y()*point1.y());
+        double theta = std::fmod( std::atan2(point1.y(), point1.x()) + M_2_PI , M_2_PI);
+        cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z()));
     }
 
     ostream << "\n\n";
@@ -238,12 +242,19 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
         
         unsigned int i = meshSoup->triangleFamily_ID[tri_i];
-        double fx = force_factor *meshSoup->generalizedForcesPerFamily[6 * i + 0];
+        double fx = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 0];
         double fy = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 1];
         double fz = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 2];
         ostream << fx << " " << fy << " " << fz << "\n";
     }
 
+    ostream << "\n\n";
+    ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup << "\n";
+    ostream << "VECTORS Positions float\n";
+    
+    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
+        ostream << cell_cyl_pos[tri_i].x() << " " << cell_cyl_pos[tri_i].y() << " " << cell_cyl_pos[tri_i].z() << "\n";
+    }
     outfile << ostream.str();
 }
 void ChSystemGpuMesh_impl::cleanupTriMesh() {
