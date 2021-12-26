@@ -217,7 +217,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         ostream << point3.x() << " " << point3.y() << " " << point3.z() << "\n";
 
         double r = sqrt(point1.x() * point1.x() + point1.y()*point1.y());
-        double theta = std::fmod( std::atan2(point1.y(), point1.x()) + M_2_PI , M_2_PI);
+        double theta = acos(point1.x() / r) + M_2_PI , M_2_PI) / M_PI * 180.f;
         cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z()));
     }
 
@@ -249,8 +249,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
     }
 
     ostream << "\n\n";
-    ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup << "\n";
-    ostream << "VECTORS Positions float\n";
+    ostream << "VECTORS CellPositions float\n";
     
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
         ostream << cell_cyl_pos[tri_i].x() << " " << cell_cyl_pos[tri_i].y() << " " << cell_cyl_pos[tri_i].z() << "\n";
