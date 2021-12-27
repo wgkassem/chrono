@@ -266,9 +266,8 @@ int main(int argc, char* argv[]) {
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
                 if (normfrc > 0) {
                     thetaF = acos(imeshforce.x() / normfrc);
-                
-                    theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                    if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
+                    if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+                    theta = (float) (imesh-1) / 120.f  * 2.f * M_PI; // we are assuming mesh positions are going from 0 to 360 consecutively
                     cst = cos(theta - thetaF);
                     snt = sin(theta - thetaF);
                     imeshforcecyl.Set( normfrc * cst, 
@@ -276,7 +275,7 @@ int main(int argc, char* argv[]) {
                                         imeshforce.z() );
                 }
                 else {
-                    imeshforcecyl.Set( 0.f, 0.f, 0.f );
+                    imeshforcecyl.Set( 0.f, 0.f, imeshforce.z() );
                 }
 
                 // add to sum
@@ -388,9 +387,8 @@ int main(int argc, char* argv[]) {
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
                 if (normfrc > 0) {
                     thetaF = acos(imeshforce.x() / normfrc);
-                
-                    theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                    if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
+                    if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+                    theta = (float) (imesh-1) / 120.f  * 2.f * M_PI; // we are assuming mesh positions are going from 0 to 360 consecutively
                     cst = cos(theta - thetaF);
                     snt = sin(theta - thetaF);
                     imeshforcecyl.Set( normfrc * cst, 
