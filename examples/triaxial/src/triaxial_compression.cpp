@@ -253,14 +253,16 @@ int main(int argc, char* argv[]) {
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
                 ChVector<> imeshforcecyl;
+                ChVector<> imeshposition;
 
                 // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
+                gpu_sys.GetMeshPosition(imesh, imeshposition);
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
-                theta = (float) (imesh/2) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + 2.f * M_PI, 2.f * M_PI);
+                theta = (float) (imesh) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
@@ -274,7 +276,7 @@ int main(int argc, char* argv[]) {
                 // output to mesh file(s)
                 char meshfforces[100];
                 sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
+                imeshposition.x(), imeshposition.y(), imeshposition.z(), theta);
                 meshfrcFile << meshfforces; 
             }
 
@@ -374,8 +376,8 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
-                theta = (float) (imesh/2) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + 2.f * M_PI, 2.f * M_PI);
+                theta = (float) (imesh) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
@@ -384,13 +386,12 @@ int main(int argc, char* argv[]) {
                                     imeshforce.z() );
 
                 // add to sum
-                //if (imesh > 0 || imesh < nmeshes -1){
-                //    sumforce += imeshforce;
-                //    sumforcecyl += imeshforcecyl;
-                //}
+//                sumforce += imeshforce;
+//                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
+                char meshfforces[100];
                 sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
+                imeshposition.x(), imeshposition.y(), imeshposition.z(), theta);
                 meshfrcFile << meshfforces; 
             }
 

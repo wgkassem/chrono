@@ -651,6 +651,34 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
+void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int& coord_sys=0) {
+
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    position.Set(0.f, 0.f, 0.f);
+    int N = 0;    
+    for (unsigned int tri_i = 0; tri_i < sys_trimesh->meshSoup->nTrianglesInSoup; tri_i++) {
+        
+        unsigned int fam = sys_trimesh->meshSoup->triangleFamily_ID[tri_i];
+        if (fam != mesh) {continue;}
+
+        float3 p1 = make_float3(sys_trimesh->meshSoup->node1[tri_i].x, sys_trimesh->meshSoup->node1[tri_i].y, sys_trimesh->meshSoup->node1[tri_i].z);
+        float3 p2 = make_float3(sys_trimesh->meshSoup->node2[tri_i].x, sys_trimesh->meshSoup->node2[tri_i].y, sys_trimesh->meshSoup->node2[tri_i].z);
+        float3 p3 = make_float3(sys_trimesh->meshSoup->node3[tri_i].x, sys_trimesh->meshSoup->node3[tri_i].y, sys_trimesh->meshSoup->node3[tri_i].z);
+
+        ApplyFrameTransform(p1, sys_trimesh->tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+        ApplyFrameTransform(p2, sys_trimesh->tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+        ApplyFrameTransform(p3, sys_trimesh->tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+
+        ChVector<> point1 = {p1.x, p1.y, p1.z};
+        ChVector<> point2 = {p2.x, p2.y, p2.z};
+        ChVector<> point3 = {p3.x, p3.y, p3.z};
+
+        position += point1 + point2 + point3; // all points have the same mass in one family
+        N += 3;
+    }
+    position /= N;
+}
+
 void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
     m_sys->user_coord_O_X = O.x();
     m_sys->user_coord_O_Y = O.y();
