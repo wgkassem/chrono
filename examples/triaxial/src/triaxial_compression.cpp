@@ -214,14 +214,7 @@ int main(int argc, char* argv[]) {
     std::cout << "out_steps " << out_steps << std::endl;
 
     unsigned int step = 0;
-
     float curr_time = 0;
-
-    // sum-of-forces file 
-    //char filenamesumforces[100];
-    //sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
-    //std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
-    //sumfrcsFile << "#step, fx, fy, fz, fr, ftheta\n";
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
@@ -239,15 +232,8 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "#imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
+            meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
 
-//            ChVector<> sumforce;    // sum of forces for all meshes
-//            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
-//            ChVector<> sumtorque;   // torques for each mesh
-            float theta, thetaF, snt, cst, normfrc;
-
-            // gpu_sys.CollectMeshContactForces(0, force, torque);
-            // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
             for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
                 ChVector<> imeshforce;  // forces for each mesh
@@ -261,31 +247,25 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + 2.f * M_PI, 2.f * M_PI);
-                theta = (float) (imesh) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                cst = cos(theta - thetaF);
-                snt = sin(theta - thetaF);
-                normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
-                imeshforcecyl.Set( normfrc * cst, 
-                                    normfrc * snt,
+                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y())
+                double thetaF = acos( imeshforce.x() / normF);
+                if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+                if (normF < 0.0000001) {thetaF = 0.f;}
+                double cst = cos(imeshposition.y() - thetaF);
+                double snt = sin(imeshposition.y() - thetaF);
+                imeshforcecyl.Set( normF * cst, 
+                                    normF * snt,
                                     imeshforce.z() );
 
-                // add to sum
-//                sumforce += imeshforce;
-//                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
                 char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshposition.x(), imeshposition.y(), imeshposition.z(), theta);
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+                    imeshposition.x(), imeshposition.y(), imeshposition.z(),
+                    imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                    imeshforcecyl.x(), imeshforcecyl.y());
                 meshfrcFile << meshfforces; 
             }
 
-            // output sum of forces to step file 
-//            char fforces[100];
-//            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
-//            sumforcecyl.x(), sumforcecyl.y() );            
-//            sumfrcsFile << fforces;
-            
             printf("time = %.4f\n", curr_time);
         }
 
@@ -354,16 +334,8 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "#imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
+            meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
 
-            unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
-            ChVector<> sumforce;    // sum of forces for all meshes
-            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
-            ChVector<> sumtorque;   // torques for each mesh
-            float theta, thetaF, snt, cst, normfrc;
-
-            // gpu_sys.CollectMeshContactForces(0, force, torque);
-            // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
             for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
                 ChVector<> imeshforce;  // forces for each mesh
@@ -377,41 +349,30 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + 2.f * M_PI, 2.f * M_PI);
-                theta = (float) (imesh) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                cst = cos(theta - thetaF);
-                snt = sin(theta - thetaF);
-                normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
-                imeshforcecyl.Set( normfrc * cst, 
-                                    normfrc * snt,
+                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y())
+                double thetaF = acos( imeshforce.x() / normF);
+                if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+                if (normF < 0.0000001) {thetaF = 0.f;}
+                double cst = cos(imeshposition.y() - thetaF);
+                double snt = sin(imeshposition.y() - thetaF);
+                imeshforcecyl.Set( normF * cst, 
+                                    normF * snt,
                                     imeshforce.z() );
 
-                // add to sum
-//                sumforce += imeshforce;
-//                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
                 char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshposition.x(), imeshposition.y(), imeshposition.z(), theta);
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+                    imeshposition.x(), imeshposition.y(), imeshposition.z(),
+                    imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                    imeshforcecyl.x(), imeshforcecyl.y());
                 meshfrcFile << meshfforces; 
             }
 
-            // output sum of cylindrical forces to step file 
-            //char fforces[100];
-            //sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
-            //sumforcecyl.x(), sumforcecyl.y() );            
-            //sumfrcsFile << fforces;
-
-            // output top plate info to step file
-            //char tforces[100];
-            //sprintf(tforces, "%d, %6f, %d, %6f, %6f\n", step, curr_time, nc, platePos.z(), plane_reaction_force.z() * F_CGS_TO_SI );  
-            //topplatefile << tforces;
-            
             printf("time = %.4f\n", curr_time);
         }
+
         step++;
         curr_time += iteration_step;
-
     }
     
     return 0;
