@@ -651,7 +651,7 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
-void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int& coord_sys=0) {
+void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int& coord_sys=0) const {
 
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     position.Set(0.f, 0.f, 0.f);
