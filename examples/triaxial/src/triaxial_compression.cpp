@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 
                 // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                gpu_sys.GetMeshPosition(imesh, imeshposition, 0);
+                gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
 
                 // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                gpu_sys.GetMeshPosition(imesh, imeshposition, 0);
+                gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
