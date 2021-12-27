@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y())
+                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
                 double thetaF = acos( imeshforce.x() / normF);
                 if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
                 if (normF < 0.0000001) {thetaF = 0.f;}
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y())
+                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
                 double thetaF = acos( imeshforce.x() / normF);
                 if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
                 if (normF < 0.0000001) {thetaF = 0.f;}
