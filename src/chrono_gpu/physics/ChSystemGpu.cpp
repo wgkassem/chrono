@@ -661,13 +661,29 @@ void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int&
         unsigned int fam = sys_trimesh->meshSoup->triangleFamily_ID[tri_i];
         if (fam != mesh) {continue;}
 
-        float3 p1 = make_float3(sys_trimesh->meshSoup->node1[tri_i].x, sys_trimesh->meshSoup->node1[tri_i].y, sys_trimesh->meshSoup->node1[tri_i].z);
-        float3 p2 = make_float3(sys_trimesh->meshSoup->node2[tri_i].x, sys_trimesh->meshSoup->node2[tri_i].y, sys_trimesh->meshSoup->node2[tri_i].z);
-        float3 p3 = make_float3(sys_trimesh->meshSoup->node3[tri_i].x, sys_trimesh->meshSoup->node3[tri_i].y, sys_trimesh->meshSoup->node3[tri_i].z);
+        float3 p1 = make_float3(sys_trimesh->meshSoup->node1[tri_i].x, 
+            sys_trimesh->meshSoup->node1[tri_i].y, 
+            sys_trimesh->meshSoup->node1[tri_i].z);
+        
+        float3 p2 = make_float3(sys_trimesh->meshSoup->node2[tri_i].x, 
+            sys_trimesh->meshSoup->node2[tri_i].y, 
+            sys_trimesh->meshSoup->node2[tri_i].z);
+        
+        float3 p3 = make_float3(sys_trimesh->meshSoup->node3[tri_i].x, 
+            sys_trimesh->meshSoup->node3[tri_i].y, 
+            sys_trimesh->meshSoup->node3[tri_i].z);
 
-        ApplyFrameTransform(p1, sys_trimesh->tri_params->fam_frame_broad[fam].pos, sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p2, sys_trimesh->tri_params->fam_frame_broad[fam].pos, sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p3, sys_trimesh->tri_params->fam_frame_broad[fam].pos, sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
+        sys_trimesh->ApplyFrameTransform(p1, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].pos, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
+        
+        sys_trimesh->ApplyFrameTransform(p2, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].pos, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
+        
+        sys_trimesh->ApplyFrameTransform(p3, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].pos, 
+            sys_trimesh->tri_params->fam_frame_broad[fam].rot_mat);
 
         ChVector<> point1 = {p1.x, p1.y, p1.z};
         ChVector<> point2 = {p2.x, p2.y, p2.z};
