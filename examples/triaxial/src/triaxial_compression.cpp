@@ -366,10 +366,10 @@ int main(int argc, char* argv[]) {
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
             for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-                char meshfforces[100];
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
                 ChVector<> imeshforcecyl;
+                ChVector<> imeshposition;
 
                 // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
