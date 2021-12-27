@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
                 
                 // change to cylinderical coordinates
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
-                if (normfrc > 0) {
+                if (normfrc > 0.f) {
                     thetaF = acos(imeshforce.x() / normfrc);
                     if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
                     theta = (float) (imesh-1) / 120.f  * 2.f * M_PI; // we are assuming mesh positions are going from 0 to 360 consecutively
