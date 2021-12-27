@@ -272,7 +272,17 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         }
     }
     ostream << "\n\n";
-    ostream << "VECTORS CellPositions float\n";
+    ostream << "Scalars MeshId float\n";
+    ostream << "LOOKUP_TABLE default\n";
+
+    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
+        
+        unsigned int i = meshSoup->triangleFamily_ID[tri_i];
+        ostream << i << "\n";
+    }
+
+    ostream << "\n\n";
+    ostream << "VECTORS CellCylindericalPositions float\n";
     
     for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
         ostream << cell_cyl_pos[tri_i].x() << " " << cell_cyl_pos[tri_i].y() << " " << cell_cyl_pos[tri_i].z() << "\n";
