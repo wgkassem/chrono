@@ -219,7 +219,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         double r = sqrt(point1.x() * point1.x() + point1.y()*point1.y());
         double theta = acos(point1.x() / r) / M_PI * 180.f;
         if (point1.y() < 0) {theta = M_2_PI - theta;std::cout << "negative!\n";}
-        cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z()));
+        cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z(),point1.x(),point1.y()));
     }
 
     ostream << "\n\n";
