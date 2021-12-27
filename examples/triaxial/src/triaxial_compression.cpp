@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
                 // change to cylinderical coordinates
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
                 thetaF = acos(imeshforce.x() / normfrc);
-                if (imeshforce.y() < 0) {M_2_PI - thetaF; }
+                if (imeshforce.y() < 0) {thetaF = M_2_PI - thetaF; }
                 theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
                 cst = cos(theta - thetaF);
@@ -380,15 +380,17 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
-                theta = (float) (imesh - 1) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                if (imesh==0 || imesh == nmeshes-1) { theta = 0.f;}
+                normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
+                thetaF = acos(imeshforce.x() / normfrc);
+                if (imeshforce.y() < 0) {thetaF = M_2_PI - thetaF; }
+                theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
-                normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
                 imeshforcecyl.Set( normfrc * cst, 
                                     normfrc * snt,
                                     imeshforce.z() );
+
 
                 // add to sum
                 //if (imesh > 0 || imesh < nmeshes -1){
