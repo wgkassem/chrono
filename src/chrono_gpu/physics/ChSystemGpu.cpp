@@ -697,6 +697,7 @@ void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int&
         double nrm = sqrt( position.x() * position.x() + position.y() * position.y() );
         if (nrm  == 0) {position.Set(0.f, 0.f, position.z()); return;}
         double theta = acos( position.x() / nrm );
+        if (position.y() < 0) {theta = 2.f * M_PI - theta;}
         position.Set( nrm, theta, position.z());
     }
 }
