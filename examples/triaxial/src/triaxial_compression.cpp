@@ -264,22 +264,27 @@ int main(int argc, char* argv[]) {
                 
                 // change to cylinderical coordinates
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
-                thetaF = acos(imeshforce.x() / normfrc);
-                if (imeshforce.y() < 0) {thetaF = M_2_PI - thetaF; }
-                theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
-                cst = cos(theta - thetaF);
-                snt = sin(theta - thetaF);
-                imeshforcecyl.Set( normfrc * cst, 
-                                    normfrc * snt,
-                                    imeshforce.z() );
+                if (normfrc > 0) {
+                    thetaF = acos(imeshforce.x() / normfrc);
+                
+                    theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                    if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
+                    cst = cos(theta - thetaF);
+                    snt = sin(theta - thetaF);
+                    imeshforcecyl.Set( normfrc * cst, 
+                                        normfrc * snt,
+                                        imeshforce.z() );
+                }
+                else {
+                    imeshforcecyl.Set( 0.f, 0.f, 0.f );
+                }
 
                 // add to sum
 //                sumforce += imeshforce;
 //                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
                 char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f\n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }
@@ -381,15 +386,20 @@ int main(int argc, char* argv[]) {
                 
                 // change to cylinderical coordinates
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
-                thetaF = acos(imeshforce.x() / normfrc);
-                if (imeshforce.y() < 0) {thetaF = M_2_PI - thetaF; }
-                theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
-                cst = cos(theta - thetaF);
-                snt = sin(theta - thetaF);
-                imeshforcecyl.Set( normfrc * cst, 
-                                    normfrc * snt,
-                                    imeshforce.z() );
+                if (normfrc > 0) {
+                    thetaF = acos(imeshforce.x() / normfrc);
+                
+                    theta = (float) (imesh-1) * M_2_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                    if (imesh == 0 || imesh==nmeshes-1) {theta = 0;}
+                    cst = cos(theta - thetaF);
+                    snt = sin(theta - thetaF);
+                    imeshforcecyl.Set( normfrc * cst, 
+                                        normfrc * snt,
+                                        imeshforce.z() );
+                }
+                else {
+                    imeshforcecyl.Set( 0.f, 0.f, imeshforce.z() );
+                }
 
 
                 // add to sum
@@ -398,7 +408,7 @@ int main(int argc, char* argv[]) {
                 //    sumforcecyl += imeshforcecyl;
                 //}
                 // output to mesh file(s)
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f\n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }

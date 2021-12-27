@@ -217,9 +217,9 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         ostream << point3.x() << " " << point3.y() << " " << point3.z() << "\n";
 
         double r = sqrt(point1.x() * point1.x() + point1.y()*point1.y());
-        double theta = acos(point1.x() / r) / M_PI * 180.f;
+        double theta = acos(point1.x() / r);
         if (point1.y() < 0) {theta = M_2_PI - theta;std::cout << "negative!\n";}
-        cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z(),point1.x(),point1.y()));
+        cell_cyl_pos.push_back(ChVector<>(r,theta,point1.z()));
     }
 
     ostream << "\n\n";
@@ -236,7 +236,7 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
 
     ostream << "\n\n";
     ostream << "CELL_DATA " << meshSoup->nTrianglesInSoup << "\n";
-    ostream << "VECTORS Forces float\n";
+    ostream << "VECTORS CartesianForces float\n";
     
     double force_factor = FORCE_SU2UU;
     double torque_factor = TORQUE_SU2UU;
@@ -249,6 +249,30 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         ostream << fx << " " << fy << " " << fz << "\n";
     }
 
+    ostream << "\n\n";
+    ostream << "VECTORS CylindricalForces float\n";
+    
+    double force_factor = FORCE_SU2UU;
+    double torque_factor = TORQUE_SU2UU;
+    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++){
+        
+        unsigned int i = meshSoup->triangleFamily_ID[tri_i];
+        double fx = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 0];
+        double fy = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 1];
+        double fz = force_factor * meshSoup->generalizedForcesPerFamily[6 * i + 2];
+        double normfrc = sqrt(fx*fx + fy*fy);
+        if (normfrc > 0){
+            double thetaF = acos(fx / fr);
+            double theta = cell_cyl_pos[tri_i].y();
+            cst = cos(theta - thetaF);
+            snt = sin(theta - thetaF);
+
+            ostream << normfrc * cst << " " << normfrc * snt << " " << fz << "\n";
+        }
+        else{
+            ostream << "0.00000 0.00000 " << fz << "\n";
+        }
+    }
     ostream << "\n\n";
     ostream << "VECTORS CellPositions float\n";
     
