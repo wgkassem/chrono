@@ -264,8 +264,8 @@ void ChSystemGpuMesh_impl::WriteMeshesForces(
         if (normfrc > 0){
             double thetaF = acos(fx / fr);
             double theta = cell_cyl_pos[tri_i].y();
-            cst = cos(theta - thetaF);
-            snt = sin(theta - thetaF);
+            double cst = cos(theta - thetaF);
+            double snt = sin(theta - thetaF);
 
             ostream << normfrc * cst << " " << normfrc * snt << " " << fz << "\n";
         }
