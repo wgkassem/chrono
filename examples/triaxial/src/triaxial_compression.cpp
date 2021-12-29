@@ -314,12 +314,12 @@ int main(int argc, char* argv[]) {
     // side plate move inward with velocity 1cm/s
     std::vector<ChVector<>> sideMeshesPositions;
     for (unsigned int i=1; i<nmeshes-1; i++){
-        ChVector<> meshpos;
+        ChVector<> meshpos(0.f,0.f,0.f);
         // gpu_sys.GetMeshPosition(i,meshpos,0);
         sideMeshesPositions.push_back(meshpos);
     }
     
-    double sidePlate_radial_vel = 1.f;  // cm.s-1
+    double sidePlate_radial_vel = 0;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
