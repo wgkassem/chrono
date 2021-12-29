@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
 
     // side plate move inward with velocity 1cm/s
     std::vector<ChVector<>> sideMeshesPositions;
-    for (unsigned int i=1; i<nmeshes-1; ++i){
+    for (unsigned int i=1; i<nmeshes-1; i++){
         ChVector<> meshpos;
         gpu_sys.GetMeshPosition(i,meshpos,0);
         sideMeshesPositions.push_back(meshpos);
@@ -344,8 +344,8 @@ int main(int argc, char* argv[]) {
         
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
-            sidePlate_advancePos(i);
-            gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i],q0, v0, w0);
+            sidePlate_advancePos(i-1);
+            gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
         // Move top plate
