@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> sideMeshesPositions;
     for (unsigned int i=1; i<nmeshes-1; i++){
         ChVector<> meshpos(0.f,0.f,0.f);
-        /// gpu_sys.GetMeshPosition(i,meshpos,0);
+        gpu_sys.GetMeshPosition(i,meshpos,0);
         sideMeshesPositions.push_back(meshpos);
     }
     
