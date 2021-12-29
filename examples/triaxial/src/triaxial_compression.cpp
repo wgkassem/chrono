@@ -327,17 +327,15 @@ int main(int argc, char* argv[]) {
     
     std::function<void(int)> sidePlate_advancePos = [&sidePlate_offset, &sidePlate_radial_vel, 
         &sidePlate_moveTime, &iteration_step, &sideMeshesPositions](int i){
-        if (t > sidePlate_moveTime){
-            double x = sideMeshesPositions[i].x();
-            double y = sideMeshesPositions[i].y();
-            double z = sideMeshesPositions[i].z();
-            double r = sqrt(x*x + y*y);
-            double cstheta = x / r;
-            double sntheta = y / r;
-            double dx = iteration_step * sidePlate_radial_vel * cstheta;
-            double dy = iteration_step * sidePlate_radial_vel * sntheta;
-            sideMeshesPositions[i] += ChVector<>(dx, dy, z);
-        }
+        double x = sideMeshesPositions[i].x();
+        double y = sideMeshesPositions[i].y();
+        double z = sideMeshesPositions[i].z();
+        double r = sqrt(x*x + y*y);
+        double cstheta = x / r;
+        double sntheta = y / r;
+        double dx = iteration_step * sidePlate_radial_vel * cstheta;
+        double dy = iteration_step * sidePlate_radial_vel * sntheta;
+        sideMeshesPositions[i] += ChVector<>(dx, dy, z);
     };
      
     // continue simulation until the end
