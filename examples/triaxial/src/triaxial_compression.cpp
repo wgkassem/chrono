@@ -340,12 +340,15 @@ int main(int argc, char* argv[]) {
     };
      
     // continue simulation until the end
+    ChVector<> myv;
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
             sidePlate_advancePos(i-1);
+            gpu_sys.GetMeshPosition(i, myv, 1); 
+            if (i==0) {std::cout << "r = " << myv.x() << "\n";}
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
