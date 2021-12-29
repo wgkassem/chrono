@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         sideMeshesPositions.push_back(meshpos);
     }
     
-    double sidePlate_radial_velocity = -1.f;  // cm.s-1
+    double sidePlate_radial_vel = -1.f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -334,8 +334,8 @@ int main(int argc, char* argv[]) {
             double r = sqrt(x*x + y*y);
             double cstheta = x / r;
             double sntheta = y / r;
-            double dx = iteration_step * sidePlate_radial_velocity * cstheta;
-            double dy = iteration_step * sidePlate_radial_velocity * sntheta;
+            double dx = iteration_step * sidePlate_radial_vel * cstheta;
+            double dy = iteration_step * sidePlate_radial_vel * sntheta;
             sideMeshesPositions[i] += ChVector<>(dx, dy, z);
         }
     };
