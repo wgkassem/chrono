@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> sideMeshesPositions;
     for (unsigned int i=1; i<nmeshes-1; i++){
         ChVector<> meshpos(0.f,0.f,0.f);
-        // gpu_sys.GetMeshPosition(i,meshpos,0);
+        gpu_sys.GetMeshPosition(i,meshpos,0);
         sideMeshesPositions.push_back(meshpos);
     }
     
@@ -335,7 +335,7 @@ int main(int argc, char* argv[]) {
         double sntheta = y / r;
         double dx = iteration_step * sidePlate_radial_vel * cstheta;
         double dy = iteration_step * sidePlate_radial_vel * sntheta;
-        sideMeshesPositions[i] += ChVector<>(dx, dy, z);
+        sideMeshesPositions[i].Set( sideMeshesPositions[i] + ChVector<>(dx, dy, z) );
     };
      
     // continue simulation until the end
