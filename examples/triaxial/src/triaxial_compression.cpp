@@ -331,6 +331,7 @@ int main(int argc, char* argv[]) {
         double y = sideMeshesPositions[i].y();
         double z = sideMeshesPositions[i].z();
         double r = sqrt(x*x + y*y);
+        if (r==0) { return; }
         double cstheta = x / r;
         double sntheta = y / r;
         double dx = iteration_step * sidePlate_radial_vel * cstheta;
