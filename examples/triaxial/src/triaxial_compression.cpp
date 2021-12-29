@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         sideMeshesPositions.push_back(meshpos);
     }
     
-    double sidePlate_radial_vel = -1.f;  // cm.s-1
+    double sidePlate_radial_vel = 0.2f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         
         // Move side plates
-        for (unsigned int i=1; i<nmeshes-1; ++i){
+        for (unsigned int i=1; i<nmeshes-1; i++){
             sidePlate_advancePos(i);
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i],q0, v0, w0);
         }
