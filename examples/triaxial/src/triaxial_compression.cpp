@@ -46,6 +46,18 @@ float F_CGS_TO_SI = 1e-5f;
 float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
+// sample information
+ChVector<float> sample_center(0.f, 0.f, 0.f); //cm
+float sample_hgt = 8.8;  //cm
+float sample_diam = 3.8; //cm
+float sample_rad = sample_diam / 2.f;
+
+// triaxial cell information
+ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
+float cell_hgt = 12.f;  //cm
+float cell_diam = 6.f;  //cm
+float cell_rad = cell_diam / 2.f;
+
 int main(int argc, char* argv[]) {
     // ===============================================
     // 1. Read json paramater files
@@ -115,12 +127,9 @@ int main(int argc, char* argv[]) {
     //
     // ================================================
     
-    ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-    float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
-    float cyl_hgt = Bz / 1.5f; //params.box_Z / 1.5f; //TODO: fix these
     
-    float scale_xy = 2.f*cyl_rad;
-    float scale_z = cyl_hgt; 
+    float scale_xy = 2.f*celll_rad;
+    float scale_z = cell_hgt; 
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
@@ -168,10 +177,10 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, 0.0f);
+    ChVector<float> center(0.0f, 0.0f, -sample_hgt/2.f);
     // fill up each layer
-    // particles start from 0 to cylinder_height/2
-    while (center.z() + params.sphere_radius < cyl_hgt / 2.0f )  {
+    // particles start from 0 (middle) to cylinder_height/2 (top)
+    while (center.z() + params.sphere_radius < sample_hgt / 2.0f )  {
         auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
@@ -286,7 +295,8 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_torques; // forces on the top plate
     ChVector<> topPlate_offset(0.0f, 0.0f, - cyl_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time;
-
+    ChQuaternion<float> q0(1,0,0,0);
+    
     // top plate move downward with velocity 1cm/s
     ChVector<> topPlate_vel(0.f, 0.f, -10.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
@@ -300,18 +310,53 @@ int main(int argc, char* argv[]) {
         }
         return pos;
     };
-    // sphere settled now push the plate downward
 
+    // side plate move inward with velocity 1cm/s
+    std::vector<ChVector<>> sideMeshesPositions;
+    for (unsigned int i=1; i<nmeshes-1; ++i){
+        ChVector<> meshpos;
+        gpu_sys.GetMeshPosition(i,meshpos,0);
+        sideMeshesPositions.push_back(meshpos);
+    }
+    
+    double sidePlate_radial_velocity = -1.f;  // cm.s-1
+    float sidePlate_moveTime = curr_time;
+    ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
+    ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
+    ChVector<> sidePlate_offset(0.0f, 0.0f, 0.0f); // initial side plate offset
+    
+    std::function<void(int)> sidePlate_advancePos = [&sidePlate_offset, &sidePlate_radial_vel, 
+        &sidePlate_moveTime, &iteration_step, &sideMeshesPositions](int i){
+        if (t > sidePlate_moveTime){
+            double x = sideMeshesPositions[i].x();
+            double y = sideMeshesPositions[i].y();
+            double z = sideMeshesPositions[i].z();
+            double r = sqrt(x*x + y*y);
+            double cstheta = x / r;
+            double sntheta = y / r;
+            double dx = iteration_step * sidePlate_radial_velocity * cstheta;
+            double dy = iteration_step * sidePlate_radial_velocity * sntheta;
+            sideMeshesPositions[i] += ChVector<>(dx, dy, z);
+        }
+    };
+     
     // continue simulation until the end
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
+        
+        // Move side plates
+        for (unsigned int i=1; i<nmeshes-1; ++i){
+            sidePlate_advancePos(i);
+            gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i],q0, v0, w0);
+        }
+        
+        // Move top plate
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
-        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
+        // gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        // platePos = gpu_sys.GetBCPlanePosition(topWall); // TODO: replace this by my own function
         std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
