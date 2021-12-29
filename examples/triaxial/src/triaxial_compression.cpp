@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     // fill up each layer
     // particles start from 0 (middle) to cylinder_height/2 (top)
     while (center.z() + params.sphere_radius < sample_hgt / 2.0f )  {
-        auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
+        auto points = sampler.SampleCylinderZ(center, cell_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / cell_rad, -initialPos.at(i).x() / cell_rad, 0.0f);
         initialVelo.push_back(velo);
     }
 
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - cyl_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time;
     ChQuaternion<float> q0(1,0,0,0);
     
