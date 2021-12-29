@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         sideMeshesPositions.push_back(meshpos);
     }
     
-    double sidePlate_radial_vel = -0.2f;  // cm.s-1
+    double sidePlate_radial_vel = 0.2f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
