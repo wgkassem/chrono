@@ -344,7 +344,7 @@ int main(int argc, char* argv[]) {
         
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
-            sidePlate_advancePos(i-1);
+            // sidePlate_advancePos(i-1);
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
