@@ -54,7 +54,7 @@ float sample_rad = sample_diam / 2.f;
 
 // triaxial cell information
 ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-float cell_hgt = 12.f;  //cm
+float cell_hgt = 10.f;  //cm
 float cell_diam = 6.f;  //cm
 float cell_rad = cell_diam / 2.f;
 
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     // ================================================
     
     
-    float scale_xy = 2.f*celll_rad;
+    float scale_xy = 2.f*cell_rad;
     float scale_z = cell_hgt; 
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     std::vector<float> mesh_masses;
