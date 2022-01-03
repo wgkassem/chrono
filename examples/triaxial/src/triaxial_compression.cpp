@@ -330,6 +330,7 @@ int main(int argc, char* argv[]) {
         double x = sideMeshesPositions[i].x();
         double y = sideMeshesPositions[i].y();
         double z = sideMeshesPositions[i].z();
+        if (i==0) {std::cout << "\n--------------------------\n" << x <<" "<< y <<" "<< z << "\n--------------------------\n";}
         double r = sqrt(x*x + y*y);
         if (r==0) { return; }
         double cstheta = x / r;
@@ -348,7 +349,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int i=1; i<nmeshes-1; i++){
             sidePlate_advancePos(i-1);
             gpu_sys.GetMeshPosition(i, myv, 1); 
-            if (i==1) {std::cout << "r = " << myv.x() << " r_s = " << sideMeshesPositions[i-1].x() << "\n";}
+//            if (i==1) {std::cout << "r = " << myv.x() << " r_s = " << sideMeshesPositions[i-1].x() << "\n";}
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
@@ -359,14 +360,14 @@ int main(int argc, char* argv[]) {
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
+        //std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
-        std::cout << ", numContacts: " << nc;
+        //std::cout << ", numContacts: " << nc;
 
         gpu_sys.CollectMeshContactForces(nmeshes-1, topPlate_forces, topPlate_torques);
-        std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
-        std::cout << "\n";
+        //std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
+        //std::cout << "\n";
 
         if (step % out_steps == 0){
 
