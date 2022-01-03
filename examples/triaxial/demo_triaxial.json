@@ -1,6 +1,6 @@
 {
 
-    "sphere_radius": 0.5,
+    "sphere_radius": 0.05,
     "sphere_density": 2.8,
     
     "box_X": 10.0,
@@ -10,7 +10,7 @@
 	"grav_Y": 0,
 	"grav_Z": -980,
 	"step_size": 5e-5,
-    "time_end": 1.0,
+    "time_end": 2.0,
 
     "normalStiffS2S": 1e8,
     "normalStiffS2W": 1e8,
