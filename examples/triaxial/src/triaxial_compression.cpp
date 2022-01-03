@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         sideMeshesPositions.push_back(meshpos);
     }
     
-    double sidePlate_radial_vel = -100.f;  // cm.s-1
+    double sidePlate_radial_vel = -1000.f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
         double sntheta = y / r;
         double dx = iteration_step * sidePlate_radial_vel * cstheta;
         double dy = iteration_step * sidePlate_radial_vel * sntheta;
-        sideMeshesPositions[i].Set( dx, dy, 0);
+        sideMeshesPositions[i].Set( x+dx, y+dy, z);
     };
      
     // continue simulation until the end
