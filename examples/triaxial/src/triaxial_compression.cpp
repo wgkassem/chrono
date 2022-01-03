@@ -335,9 +335,10 @@ int main(int argc, char* argv[]) {
     // continue simulation until the end
     ChVector<> myv, shift;
     int end_step = step +5;
+    int tmp = 0;
     while (step < end_step) { //curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-        
+        tmp++;
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
             gpu_sys.GetMeshPosition(i, myv, 0);
@@ -351,7 +352,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
                 std::cout << "\n--------------------------\n";
             }
-            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0);
+            gpu_sys.ApplyMeshMotion(i,shift * tmp,q0, v0, w0);
         }
         
         // Move top plate
