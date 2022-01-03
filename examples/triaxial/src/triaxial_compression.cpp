@@ -350,9 +350,10 @@ int main(int argc, char* argv[]) {
             sidePlate_advancePos(i-1);
             gpu_sys.GetMeshPosition(i, myv, 0); 
             if (i==1) {
-                std::cout << "\n" << sideMeshesPositions[i-1].x() << " " << sideMeshesPositions[i-1].y() << " " << sideMeshesPositions[i-1].z();}
+                std::cout << "\n" << sideMeshesPositions[i-1].x() << " " << sideMeshesPositions[i-1].y() << " " << sideMeshesPositions[i-1].z();
                 std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
-                std::cout << "\n--------------------------\n";}
+                std::cout << "\n--------------------------\n";
+            }
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
