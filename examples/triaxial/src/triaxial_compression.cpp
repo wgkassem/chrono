@@ -48,8 +48,8 @@ float L_CGS_TO_SI = 1e-2f;
 
 // sample information
 ChVector<float> sample_center(0.f, 0.f, 0.f); //cm
-float sample_hgt = 8.8;  //cm
-float sample_diam = 3.8; //cm
+float sample_hgt = 4.;  //cm
+float sample_diam = 3.; //cm
 float sample_rad = sample_diam / 2.f;
 
 // triaxial cell information
