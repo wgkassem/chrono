@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int i=1; i<nmeshes-1; i++){
             sidePlate_advancePos(i-1);
             gpu_sys.GetMeshPosition(i, myv, 1); 
-            if (i==1) {std::cout << "r = " << myv.x() << "r_s = " << sideMeshesPositions[i-1].x() "\n";}
+            if (i==1) {std::cout << "r = " << myv.x() << "r_s = " << sideMeshesPositions[i-1].x() << "\n";}
             gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
         }
         
