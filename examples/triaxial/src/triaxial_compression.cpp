@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
     ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
-    float topPlate_moveTime = curr_time;
+    float topPlate_moveTime = curr_time+2.0;
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
@@ -376,12 +376,12 @@ int main(int argc, char* argv[]) {
         
         // Move top plate
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
-//        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
+        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-//        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
+        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
