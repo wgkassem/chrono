@@ -1,11 +1,11 @@
 {
 
-    "sphere_radius": 0.05,
+    "sphere_radius": 0.5,
     "sphere_density": 2.8,
     
-    "box_X": 10.0,
-	"box_Y": 10.0,
-	"box_Z": 20.0,
+    "box_X": 100.0,
+	"box_Y": 100.0,
+	"box_Z": 100.0,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,

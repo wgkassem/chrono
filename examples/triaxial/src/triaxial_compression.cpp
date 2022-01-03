@@ -48,14 +48,14 @@ float L_CGS_TO_SI = 1e-2f;
 
 // sample information
 ChVector<float> sample_center(0.f, 0.f, 0.f); //cm
-float sample_hgt = 4.;  //cm
-float sample_diam = 3.; //cm
+float sample_hgt = 20.;  //cm
+float sample_diam = 15.; //cm
 float sample_rad = sample_diam / 2.f;
 
 // triaxial cell information
 ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-float cell_hgt = 10.f;  //cm
-float cell_diam = 6.f;  //cm
+float cell_hgt = 25.f;  //cm
+float cell_diam = 20.f;  //cm
 float cell_rad = cell_diam / 2.f;
 
 ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
