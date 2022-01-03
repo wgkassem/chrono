@@ -312,12 +312,12 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -10.f;  // cm.s-1
+    float sidePlate_radial_vel = -20.f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
 
-    std::function<ChVector<float>(ChVector<>&)> sidePlate_advancePos = [&sidePlate_radial_vel, &iteration_step](ChVector<>& pos){ 
+    std::function<ChVector<float>(float, ChVector<>&)> sidePlate_advancePos = [&sidePlate_radial_vel, &sidePlate_moveTime](float t, ChVector<>& pos){ 
         ChVector<float> delta(0.f,0.f, 0.f);
         float x = pos.x();
         float y = pos.y();
@@ -326,8 +326,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = iteration_step * sidePlate_radial_vel * cstheta;
-        float dy = iteration_step * sidePlate_radial_vel * sntheta;
+        float dx = (t - sidePlate_moveTime) * sidePlate_radial_vel * cstheta;
+        float dy = (t - sidePlate_moveTime) * sidePlate_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -346,13 +346,13 @@ int main(int argc, char* argv[]) {
                 std::cout << "\n--------------------------\n";
                 std::cout << myv.x() << " " << myv.y() << " " << myv.z();
             }
-            shift.Set(sidePlate_advancePos( myv ));
+            shift.Set(sidePlate_advancePos( curr_time, myv ));
             if (i==1) {
                 std::cout << "\n" << shift.x() << " " << shift.y() << " " << shift.z();
                 std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
                 std::cout << "\n--------------------------\n";
             }
-            gpu_sys.ApplyMeshMotion(i,shift * tmp,q0, v0, w0);
+            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0);
         }
         
         // Move top plate
