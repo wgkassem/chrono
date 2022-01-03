@@ -58,6 +58,29 @@ float cell_hgt = 10.f;  //cm
 float cell_diam = 6.f;  //cm
 float cell_rad = cell_diam / 2.f;
 
+ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
+    ChVector<> vcyl;
+
+    double norm_pos = sqrt( pos.x() * pos.x() + pos.y() * pos.y() );
+    double theta_pos = acos( pos.x() / norm_pos );
+    if (pos.y() < 0) {theta_pos = 2.f * M_PI - theta_pos;}
+    if (norm_pos  == 0) { theta_pos = 0; }
+
+    double norm_v = sqrt( v.x() * v.x() + v.y() * v.y());
+    double theta_v = acos( v.x() / norm_v);
+    if (v.y() < 0) {theta_v = 2.f * M_PI - theta_v;}
+    if (norm_v < 0.0000001) {theta_v = 0.f;}
+    
+    double cst = cos(theta_pos - theta_v);
+    double snt = sin(theta_pos - theta_v);
+    vcyl.Set( norm_v * cst, 
+                norm_v * snt,
+                v.z() );
+
+    return vcyl;
+}
+
+
 int main(int argc, char* argv[]) {
     // ===============================================
     // 1. Read json paramater files
@@ -312,7 +335,7 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -20.f;  // cm.s-1
+    float sidePlate_radial_vel = -1.f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -334,39 +357,48 @@ int main(int argc, char* argv[]) {
      
     // continue simulation until the end
     ChVector<> myv, shift;
+    std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
+    for (unsigned int i=0; i < nmeshes; i++){
+        meshForces.push_back(ChVector<float>(0.,0.,0.));
+        meshTorques.push_back(ChVector<float>(0.,0.,0.));
+        meshPositions.push_back(ChVector<float>(0.,0.,0.));
+    }
+
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
-            gpu_sys.GetMeshPosition(i, myv, 0);
-            if (i==1) {
-                std::cout << "\n--------------------------\n";
-                std::cout << myv.x() << " " << myv.y() << " " << myv.z();
-            }
-            shift.Set(sidePlate_advancePos( curr_time, myv ));
-            if (i==1) {
-                std::cout << "\n" << shift.x() << " " << shift.y() << " " << shift.z();
-                std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
-                std::cout << "\n--------------------------\n";
-            }
-            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0);
+            gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
+            shift.Set(sidePlate_advancePos( curr_time, meshPositions[i] ));
+            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0); 
         }
         
         // Move top plate
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
-        // gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
+//        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        //std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
+//        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
-        //std::cout << ", numContacts: " << nc;
+        std::cout << ", numContacts: " << nc;
 
-        gpu_sys.CollectMeshContactForces(nmeshes-1, topPlate_forces, topPlate_torques);
+        for (unsigned int i = 0; i < nmeshes; i++){
+            gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
+            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
+            meshForces[i] *= F_CGS_TO_SI;                                        // change to SI
+        }
         //std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
         //std::cout << "\n";
+
+        float radial_press = 0.f;
+        for (unsigned int i=1; i < nmeshes-1; i++){
+            radial_press += meshForces[i].x(); // r-component
+        }
+        radial_press /= gpu_sys.GetMaxParticleZ() * M_PI * (cell_diam - 2.f*(curr_time-sidePlate_moveTime)*sidePlate_radial_vel)*1e-2; // N.m-2=Pa
+        std::cout << "   radial pressure = " << radial_press / 1000.f << "kPa";
 
         if (step % out_steps == 0){
 
