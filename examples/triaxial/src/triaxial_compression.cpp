@@ -337,7 +337,7 @@ int main(int argc, char* argv[]) {
         double sntheta = y / r;
         double dx = iteration_step * sidePlate_radial_vel * cstheta;
         double dy = iteration_step * sidePlate_radial_vel * sntheta;
-        sideMeshesPositions[i].Set( x+dx, y+dy, z);
+        sideMeshesPositions[i].Set( dx, dy, 0);
     };
      
     // continue simulation until the end
