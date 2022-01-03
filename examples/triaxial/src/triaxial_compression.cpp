@@ -241,8 +241,9 @@ int main(int argc, char* argv[]) {
     
     unsigned int nmeshes = gpu_sys.GetNumMeshes(); // 122 meshes (bottom + 120 side + top) TODO: consider changing side to also just one mesh 
     unsigned int out_steps = (unsigned int)(1.0f / (out_fps * iteration_step));
+    unsigned int fps = (unsigned int)(1.0f / iteration_step);
     unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
-    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
+    unsigned int total_frames = (unsigned int)(params.time_end * fps);
     std::cout << "out_steps " << out_steps << std::endl;
 
     unsigned int step = 0;
@@ -398,7 +399,7 @@ int main(int argc, char* argv[]) {
             radial_press += meshForces[i].x(); // r-component
         }
         radial_press /= gpu_sys.GetMaxParticleZ() * M_PI * (cell_diam - 2.f*(curr_time-sidePlate_moveTime)*sidePlate_radial_vel)*1e-2; // N.m-2=Pa
-        std::cout << "   radial pressure = " << radial_press / 1000.f << "kPa";
+        std::cout << "\nradial pressure = " << radial_press / 1000.f << "kPa\n";
 
         if (step % out_steps == 0){
 
