@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         curr_time += iteration_step;
         step++;
 
-    }
+    };
 
     // ============================================
     //
@@ -312,50 +312,46 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    std::vector<ChVector<>> sideMeshesPositions;
-    for (unsigned int i=1; i<nmeshes-1; i++){
-        ChVector<> meshpos(0.f,0.f,0.f);
-        gpu_sys.GetMeshPosition(i,meshpos,0);
-        sideMeshesPositions.push_back(meshpos);
-    }
-    
-    double sidePlate_radial_vel = -10.f;  // cm.s-1
+    float sidePlate_radial_vel = -10.f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
-    ChVector<> sidePlate_offset(0.0f, 0.0f, 0.0f); // initial side plate offset
-    
-    std::function<void(int)> sidePlate_advancePos = [&sidePlate_offset, &sidePlate_radial_vel, 
-        &sidePlate_moveTime, &iteration_step, &sideMeshesPositions](int i){
-        double x = sideMeshesPositions[i].x();
-        double y = sideMeshesPositions[i].y();
-        double z = sideMeshesPositions[i].z();
-        if (i==0) {std::cout << "\n--------------------------\n" << x <<" "<< y <<" "<< z ;}
-        double r = sqrt(x*x + y*y);
-        if (r==0) { return; }
-        double cstheta = x / r;
-        double sntheta = y / r;
-        double dx = iteration_step * sidePlate_radial_vel * cstheta;
-        double dy = iteration_step * sidePlate_radial_vel * sntheta;
-        sideMeshesPositions[i].Set( dx, dy, 0);
+
+    std::function<ChVector<float>(ChVector<>&)> sidePlate_advancePos = [&sidePlate_radial_vel, &iteration_step](ChVector<>& pos){ 
+        ChVector<float> delta(0.f,0.f, 0.f);
+        float x = pos.x();
+        float y = pos.y();
+        float z = pos.z();
+        float r = sqrt(x*x + y*y);
+        if (r==0) { return delta; }
+        float cstheta = x / r;
+        float sntheta = y / r;
+        float dx = iteration_step * sidePlate_radial_vel * cstheta;
+        float dy = iteration_step * sidePlate_radial_vel * sntheta;
+        delta.Set(dx,dy,0.f);
+        return delta;
     };
      
     // continue simulation until the end
-    ChVector<> myv;
+    ChVector<> myv, shift;
     int end_step = step +5;
     while (step < end_step) { //curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         
         // Move side plates
         for (unsigned int i=1; i<nmeshes-1; i++){
-            sidePlate_advancePos(i-1);
-            gpu_sys.GetMeshPosition(i, myv, 0); 
+            gpu_sys.GetMeshPosition(i, myv, 0);
             if (i==1) {
-                std::cout << "\n" << sideMeshesPositions[i-1].x() << " " << sideMeshesPositions[i-1].y() << " " << sideMeshesPositions[i-1].z();
+                std::cout << "\n--------------------------\n";
+                std::cout << myv.x() << " " << myv.y() << " " << myv.z();
+            }
+            shift.Set(sidePlate_advancePos( myv ));
+            if (i==1) {
+                std::cout << "\n" << shift.x() << " " << shift.y() << " " << shift.z();
                 std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
                 std::cout << "\n--------------------------\n";
             }
-            gpu_sys.ApplyMeshMotion(i,sideMeshesPositions[i-1],q0, v0, w0);
+            gpu_sys.ApplyMeshMotion(i,myv,q0, v0, w0);
         }
         
         // Move top plate
