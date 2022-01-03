@@ -342,7 +342,8 @@ int main(int argc, char* argv[]) {
      
     // continue simulation until the end
     ChVector<> myv;
-    while (curr_time < params.time_end) {
+    int end_step = step +5;
+    while (step < end_step) { //curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         
         // Move side plates
