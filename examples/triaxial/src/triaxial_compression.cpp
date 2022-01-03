@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "\n" << myv.x() << " " << myv.y() << " " << myv.z();
                 std::cout << "\n--------------------------\n";
             }
-            gpu_sys.ApplyMeshMotion(i,myv,q0, v0, w0);
+            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0);
         }
         
         // Move top plate
