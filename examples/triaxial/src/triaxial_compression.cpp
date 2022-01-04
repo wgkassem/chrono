@@ -327,11 +327,10 @@ int main(int argc, char* argv[]) {
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
         ChVector<> pos(topPlate_offset);
-        if (t > topPlate_moveTime){
-            pos.Set(topPlate_offset.x() + topPlate_vel.x() * (t - topPlate_moveTime),  
-                    topPlate_offset.y() + topPlate_vel.y() * (t - topPlate_moveTime),  
-                    topPlate_offset.z() + topPlate_vel.z() * (t - topPlate_moveTime) );
-        }
+        pos.Set(topPlate_offset.x() + topPlate_vel.x() * (t - topPlate_moveTime),  
+                topPlate_offset.y() + topPlate_vel.y() * (t - topPlate_moveTime),  
+                topPlate_offset.z() + topPlate_vel.z() * (t - topPlate_moveTime) );
+        
         return pos;
     };
 
@@ -368,15 +367,20 @@ int main(int argc, char* argv[]) {
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         // Move side plates
+
+        if (curr_time>=0.5 && curr_time<2.0){
         for (unsigned int i=1; i<nmeshes-1; i++){
             gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
             shift.Set(sidePlate_advancePos( curr_time, meshPositions[i] ));
             gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0); 
         }
+        }
         
-        // Move top plate
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
+        if (curr_time>=2.0 && curr_time<3.0){
+        // Move top plate
         gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, q0, topPlate_vel, topPlate_ang);
+        }
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
