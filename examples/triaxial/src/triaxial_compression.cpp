@@ -221,7 +221,6 @@ int main(int argc, char* argv[]) {
 
     unsigned int step = 0;
     float curr_time = 0;
-    float strain_step = ;
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 1.0) {
@@ -379,7 +378,7 @@ int main(int argc, char* argv[]) {
                     imeshforce.x(), imeshforce.y(), imeshforce.z(),
                     imeshforcecyl.x(), imeshforcecyl.y());
                 meshfrcFile << meshfforces;
-                if (i>1 && i<nmeshes-1){ 
+                if (imesh>0 && imesh<nmeshes-1){ 
                     thermo_prr += imeshforcecyl.x();
                 }
                 else{
@@ -392,7 +391,7 @@ int main(int argc, char* argv[]) {
             thermo_strain = - (h_cell - h0_cell) / h0_cell;
             thermo_prr /= M_PI * cell_diam * h_cell; // should be the same as top plate position
             thermo_pzz /= M_PI * cell_radius * cell_radius * 0.5f; // averaging top and bottom plate forces
-            thermo_void_ratio = h_cell * area_plate / (4.f/3.f*M_PI*params.sphere_radius^3*numSpheres) - 1.f;     
+            thermo_void_ratio = h_cell * area_plate / (4.f / 3.f * M_PI * pow(params.sphere_radius,3) * numSpheres) - 1.f;     
             
             sprintf(thermoinfo, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f",
                 step, curr_time, thermo_strain, thermo_prr, thermo_pzz, topPlate_pos.z(), thermo_void_ratio );
