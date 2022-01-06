@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 1.0) {
+    while (curr_time < 0.75) {
         
         if (step % out_steps == 0){
 
@@ -290,11 +290,11 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 1.1f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 10.1f * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -0.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
