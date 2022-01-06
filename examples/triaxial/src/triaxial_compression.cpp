@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 0.75) {
+    while (curr_time < 0.05) {
         
         if (step % out_steps == 0){
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     };
     // sphere settled now push the plate downward
     std::cout << - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) << "\n";
-     
+
     char filenameglobal[100];
     sprintf(filenameglobal, "thermo.csv" );
     std::ofstream filethermo(filenameglobal, std::ios::out);
