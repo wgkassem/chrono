@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     // fill up each layer
     // particles start from 0 to cylinder_height/2
     while (center.z() + params.sphere_radius < 0.5f * sample_hgt - 1.0f * params.sphere_radius )  {
-        auto points = sampler.SampleCylinderZ(center, sample_radius - 1.0f * params.sphere_radius, 0);
+        auto points = sampler.SampleCylinderZ(center, sample_radius - 1.0, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
