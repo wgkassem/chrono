@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     // ======================================================    
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
+    utils::PDSampler<float> sampler(5.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
