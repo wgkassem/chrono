@@ -188,12 +188,12 @@ int main(int argc, char* argv[]) {
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / sample_radius, -initialPos.at(i).x() / sample_radius, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / 0.5, -initialPos.at(i).x() / 0.5, 0.0f);
         initialVelo.push_back(velo);
     }
 
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, params.grav_Z));
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     // ===================================================
     //
