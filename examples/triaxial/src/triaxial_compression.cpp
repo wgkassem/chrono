@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, -0.5f * sample_hgt + 2.1f * params.sphere_radius);
+    ChVector<float> center(0.0f, 0.0f, -0.5f * sample_hgt + 1.0);
     // fill up each layer
     // particles start from 0 to cylinder_height/2
     while (center.z() + params.sphere_radius < 0.5f * sample_hgt - 1.0f * params.sphere_radius )  {
