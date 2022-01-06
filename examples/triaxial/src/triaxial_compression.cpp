@@ -46,6 +46,14 @@ float F_CGS_TO_SI = 1e-5f;
 float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
+float cell_hgt = 20.f; //cm
+float cell_diam = 10.f; //cm
+float cell_radius = cell_diam / 2.f;
+
+float sample_hgt = cell_hgt;
+float sample_diam = cell_diam;
+float sample_radius = sample_diam / 2.f;
+
 int main(int argc, char* argv[]) {
     // ===============================================
     // 1. Read json paramater files
@@ -116,11 +124,9 @@ int main(int argc, char* argv[]) {
     // ================================================
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-    float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
-    float cyl_hgt = Bz / 1.5f; //params.box_Z / 1.5f; //TODO: fix these
     
-    float scale_xy = 2.f*cyl_rad;
-    float scale_z = cyl_hgt; 
+    float scale_xy = 2.f*cell_radius;
+    float scale_z = cell_hgt; 
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
@@ -133,22 +139,22 @@ int main(int argc, char* argv[]) {
 
 
     // add bottom
-    mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
+    mesh_filenames.push_back("./models/unit_circle_360_+z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
 
     // add sides
-    for (int i=0; i<120; ++i){
-        mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
-        ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
+    for (int i=0; i<360; ++i){
+        mesh_filenames.push_back("./models/unit_slab_cylinder_360.obj"); 
+        ChQuaternion<> quat = Q_from_AngAxis(i*1.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
         mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation-scaling matrix
         mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
         mesh_masses.push_back(mixer_mass); // push standard mass
     }
 
     // add top
-    mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
+    mesh_filenames.push_back("./models/unit_circle_360_-z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
@@ -168,11 +174,11 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, 0.0f);
+    ChVector<float> center(0.0f, 0.0f, -0.5f * sample_hgt + 1.1f * params.sphere_radius);
     // fill up each layer
     // particles start from 0 to cylinder_height/2
-    while (center.z() + params.sphere_radius < cyl_hgt / 2.0f )  {
-        auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
+    while (center.z() + params.sphere_radius < 0.5f * sample_hgt - 1.1f * params.sphere_radius )  {
+        auto points = sampler.SampleCylinderZ(center, sample_radius - 1.1f * params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
@@ -182,12 +188,12 @@ int main(int argc, char* argv[]) {
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / sample_radius, -initialPos.at(i).x() / sample_radius, 0.0f);
         initialVelo.push_back(velo);
     }
 
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, params.grav_Z));
 
     // ===================================================
     //
@@ -215,9 +221,10 @@ int main(int argc, char* argv[]) {
 
     unsigned int step = 0;
     float curr_time = 0;
+    float strain_step = ;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 0.5) {
+    while (curr_time < 1.0) {
         
         if (step % out_steps == 0){
 
@@ -232,7 +239,7 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
+            meshfrcFile << "#imesh, r, theta, f_x, f_y, f_z, f_r, f_theta\n";
 
             // Pull individual mesh forces
             for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
@@ -243,7 +250,7 @@ int main(int argc, char* argv[]) {
 
                 // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
+                gpu_sys.GetMeshPosition(imesh, imeshposition, 1); //cylindrical coordinates
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
@@ -259,11 +266,11 @@ int main(int argc, char* argv[]) {
 
                 // output to mesh file(s)
                 char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f\n", imesh, 
                     imeshposition.x(), imeshposition.y(), imeshposition.z(),
                     imeshforce.x(), imeshforce.y(), imeshforce.z(),
                     imeshforcecyl.x(), imeshforcecyl.y());
-                meshfrcFile << meshfforces; 
+                meshfrcFile << meshfforces;
             }
 
             printf("time = %.4f\n", curr_time);
@@ -284,11 +291,11 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - cyl_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 1.1f * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -10.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
@@ -301,15 +308,22 @@ int main(int argc, char* argv[]) {
         return pos;
     };
     // sphere settled now push the plate downward
-
+    char filenameglobal[100];
+    sprintf(filenameglobal, "thermo.csv" );
+    std::ofstream filethermo(filenameglobal, std::ios::out);
+    filethermo << "# step, time, strain, prr, pzz, plate_z, max_particle_z, void_ratio";
+    float thermo_maxz, thermo_strain, thermo_prr, thermo_pzz, thermo_void_ratio;
+    float h0_cell = topPlate_offset.z() + 0.5f * cell_hgt;
+    float area_plate = M_PI * cell_radius * cell_radius;     
+    
     // continue simulation until the end
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
         gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
-
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
+        thermo_maxz = gpu_sys.GetMaxParticleZ();
 
         // platePos = gpu_sys.GetBCPlanePosition(topWall); // TODO: replace this by my own function
         std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
@@ -322,7 +336,6 @@ int main(int argc, char* argv[]) {
         std::cout << "\n";
 
         if (step % out_steps == 0){
-
             // filenames for mesh, particles, force-per-mesh
             char filename[100], filenamemesh[100], filenameforce[100];;
             sprintf(filename, "%s/step%06d", out_dir.c_str(), step);
@@ -361,15 +374,32 @@ int main(int argc, char* argv[]) {
 
                 // output to mesh file(s)
                 char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f\n", imesh, 
                     imeshposition.x(), imeshposition.y(), imeshposition.z(),
                     imeshforce.x(), imeshforce.y(), imeshforce.z(),
                     imeshforcecyl.x(), imeshforcecyl.y());
-                meshfrcFile << meshfforces; 
-            }
-
+                meshfrcFile << meshfforces;
+                if (i>1 && i<nmeshes-1){ 
+                    thermo_prr += imeshforcecyl.x();
+                }
+                else{
+                    thermo_pzz += imeshforce.z();
+                } 
+            } //end mesh loop
+            
+            char thermoinfo[100];
+            float h_cell = topPlate_pos.z() + cell_hgt / 2.f;
+            thermo_strain = - (h_cell - h0_cell) / h0_cell;
+            thermo_prr /= M_PI * cell_diam * h_cell; // should be the same as top plate position
+            thermo_pzz /= M_PI * cell_radius * cell_radius * 0.5f; // averaging top and bottom plate forces
+            thermo_void_ratio = h_cell * area_plate / (4.f/3.f*M_PI*params.sphere_radius^3*numSpheres) - 1.f;     
+            
+            sprintf(thermoinfo, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f",
+                step, curr_time, thermo_strain, thermo_prr, thermo_pzz, topPlate_pos.z(), thermo_void_ratio );
+            
+            filethermo << thermoinfo;
             printf("time = %.4f\n", curr_time);
-        }
+        }// end if-output
 
         step++;
         curr_time += iteration_step;
