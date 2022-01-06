@@ -9,8 +9,8 @@
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
-	"step_size": 5e-5,
-    "time_end": 1.0,
+	"step_size": 5e-4,
+    "time_end": 10.0,
 
     "normalStiffS2S": 1e8,
     "normalStiffS2W": 1e8,
