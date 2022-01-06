@@ -307,6 +307,8 @@ int main(int argc, char* argv[]) {
         return pos;
     };
     // sphere settled now push the plate downward
+    std::cout << - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) << "\n";
+     
     char filenameglobal[100];
     sprintf(filenameglobal, "thermo.csv" );
     std::ofstream filethermo(filenameglobal, std::ios::out);
