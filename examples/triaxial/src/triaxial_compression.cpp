@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 0.5) {
+    while (curr_time < 0.75) {
         
         if (step % out_steps == 0){
 
