@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
     std::cout << -cell_hgt << " + " << abs( gpu_sys.GetMaxParticleZ() ) << "\n";
 
     char filenameglobal[100];
-    sprintf(filenameglobal, "thermo.csv" );
+    sprintf(filenameglobal, "%s/thermo.csv", out_dir.c_str() );
     std::ofstream filethermo(filenameglobal, std::ios::out);
     filethermo << "# step, time, strain, prr, pzz, plate_z, max_particle_z, void_ratio";
     float thermo_maxz, thermo_strain, thermo_prr, thermo_pzz, thermo_void_ratio;
