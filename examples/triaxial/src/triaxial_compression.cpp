@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
     char filenameglobal[100];
     sprintf(filenameglobal, "%s/thermo.csv", out_dir.c_str() );
     std::ofstream filethermo(filenameglobal, std::ios::out);
-    filethermo << "# step, time, strain, prr, pzz, plate_z, max_particle_z, void_ratio";
+    filethermo << "# step, time, strain, prr, pzz, plate_z, void_ratio";
     float thermo_maxz, thermo_strain, thermo_prr, thermo_pzz, thermo_void_ratio;
     float h0_cell = cell_hgt + topPlate_offset.z();  // offset < 0 && offset < cell_hgt 
     float area_plate = M_PI * cell_radius * cell_radius;
@@ -356,6 +356,8 @@ int main(int argc, char* argv[]) {
             meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
 
             // Pull individual mesh forces
+            thermo_prr = 0.f;
+            thermo_pzz = 0.f;
             for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
@@ -390,7 +392,7 @@ int main(int argc, char* argv[]) {
                 }
                 else{
                     if (imesh == nmeshes - 1){
-                        thermo_pzz += imeshforce.z();
+                        thermo_pzz = imeshforce.z();
                     }
                 } 
             } //end mesh loop
@@ -403,7 +405,7 @@ int main(int argc, char* argv[]) {
             thermo_void_ratio = h_cell * area_plate / (4.f / 3.f * M_PI * pow(params.sphere_radius,3) * numSpheres) - 1.f;     
             
             sprintf(thermoinfo, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f",
-                step, curr_time, thermo_strain, thermo_prr, thermo_pzz, topPlate_pos.z(), thermo_void_ratio );
+                step, curr_time, thermo_strain, thermo_prr, thermo_pzz, tmpvc.z(), thermo_void_ratio );
             
             filethermo << thermoinfo;
             printf("time = %.4f\n", curr_time);
