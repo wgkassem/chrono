@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - 0.5f * cell_hgt + gpu_sys.GetMaxParticleZ()  + 10.1f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - 0.5f * cell_hgt + gpu_sys.GetMaxParticleZ()  + 10.1f * params.sphere_radius); // initial top plate shift
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
@@ -314,20 +314,25 @@ int main(int argc, char* argv[]) {
     std::ofstream filethermo(filenameglobal, std::ios::out);
     filethermo << "# step, time, strain, prr, pzz, plate_z, max_particle_z, void_ratio";
     float thermo_maxz, thermo_strain, thermo_prr, thermo_pzz, thermo_void_ratio;
-    float h0_cell = topPlate_offset.z() + 0.5f * cell_hgt;
-    float area_plate = M_PI * cell_radius * cell_radius;     
+    float h0_cell = cell_hgt + topPlate_offset.z();  // offset < 0 && offset < cell_hgt 
+    float area_plate = M_PI * cell_radius * cell_radius;
+
+    ChVector<> tmpvc; // temp vector
+    gpu_sys.GetMeshPosition(nmeshes-1, tmpvc, 1); 
+    float top_plate_z = tmpvc.z();
     
     // continue simulation until the end
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
-        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
-        // write position
+        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);        // write position
         gpu_sys.AdvanceSimulation(iteration_step);
+
         thermo_maxz = gpu_sys.GetMaxParticleZ();
 
         // platePos = gpu_sys.GetBCPlanePosition(topWall); // TODO: replace this by my own function
-        std::cout << "top plate pos_z: " << topPlate_pos.z() << " cm";
+        gpu_sys.GetMeshPosition(nmeshes-1, tmpvc, 1);
+        std::cout << "top plate pos_z: " << tmpvc.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
@@ -384,15 +389,17 @@ int main(int argc, char* argv[]) {
                     thermo_prr += imeshforcecyl.x();
                 }
                 else{
-                    thermo_pzz += imeshforce.z();
+                    if (imesh == nmeshes - 1){
+                        thermo_pzz += imeshforce.z();
+                    }
                 } 
             } //end mesh loop
             
             char thermoinfo[100];
-            float h_cell = topPlate_pos.z() + cell_hgt / 2.f;
+            float h_cell = tmpvc.z() + 0.5f * cell_hgt;
             thermo_strain = - (h_cell - h0_cell) / h0_cell;
-            thermo_prr /= M_PI * cell_diam * h_cell; // should be the same as top plate position
-            thermo_pzz /= M_PI * cell_radius * cell_radius * 0.5f; // averaging top and bottom plate forces
+            thermo_prr /= 1e-4 * M_PI * cell_diam * h_cell; // should be the same as top plate position
+            thermo_pzz /= 1e-4 * area_plate;                // averaging top and bottom plate forces
             thermo_void_ratio = h_cell * area_plate / (4.f / 3.f * M_PI * pow(params.sphere_radius,3) * numSpheres) - 1.f;     
             
             sprintf(thermoinfo, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f",
