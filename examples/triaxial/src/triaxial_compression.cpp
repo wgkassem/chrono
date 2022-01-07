@@ -46,8 +46,8 @@ float F_CGS_TO_SI = 1e-5f;
 float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
-float cell_hgt = 20.f; //cm
-float cell_diam = 10.f; //cm
+float cell_hgt = 10.f; //cm
+float cell_diam = 5.f; //cm
 float cell_radius = cell_diam / 2.f;
 
 float sample_hgt = cell_hgt;
