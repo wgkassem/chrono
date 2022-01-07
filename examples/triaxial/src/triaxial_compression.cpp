@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     // add sides
     for (int i=0; i<360; ++i){
         mesh_filenames.push_back("./models/unit_slab_cylinder_360.obj"); 
-        ChQuaternion<> quat = Q_from_AngAxis(i*1.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
+        ChQuaternion<> quat = Q_from_AngAxis(i * 1.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
         mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation-scaling matrix
         mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
         mesh_masses.push_back(mixer_mass); // push standard mass
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     // add top
     mesh_filenames.push_back("./models/unit_circle_360_-z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f * scaling.z)); // push translation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), + 0.5f * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
@@ -174,11 +174,11 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, -0.5f * sample_hgt + 1.0);
+    ChVector<float> center(0.0f, 0.0f, -0.5f * sample_hgt + 2.1f * params.sphere_radius);
     // fill up each layer
     // particles start from 0 to cylinder_height/2
     while (center.z() + params.sphere_radius < 0.5f * sample_hgt - 1.0f * params.sphere_radius )  {
-        auto points = sampler.SampleCylinderZ(center, sample_radius - 1.0, 0);
+        auto points = sampler.SampleCylinderZ(center, sample_radius - 2.1f * params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - 0.5f * cell_hgt + gpu_sys.GetMaxParticleZ()  + 10.1f * params.sphere_radius); // initial top plate shift
+    ChVector<> topPlate_offset(0.0f, 0.0f, - 0.5f * cell_hgt + gpu_sys.GetMaxParticleZ()  + 2.1f * params.sphere_radius); // initial top plate shift
     float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
     char filenameglobal[100];
     sprintf(filenameglobal, "%s/thermo.csv", out_dir.c_str() );
     std::ofstream filethermo(filenameglobal, std::ios::out);
-    filethermo << "# step, time, strain, prr, pzz, plate_z, void_ratio";
+    filethermo << "#step, time, strain, prr, pzz, plate_z, void_ratio";
     float thermo_maxz, thermo_strain, thermo_prr, thermo_pzz, thermo_void_ratio;
     float h0_cell = cell_hgt + topPlate_offset.z();  // offset < 0 && offset < cell_hgt 
     float area_plate = M_PI * cell_radius * cell_radius;
