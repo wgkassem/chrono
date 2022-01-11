@@ -408,6 +408,7 @@ int main(int argc, char* argv[]) {
                 step, curr_time, thermo_strain, thermo_prr, thermo_pzz, tmpvc.z(), thermo_void_ratio );
             
             filethermo << thermoinfo;
+            filethermo.flush();
             printf("time = %.4f\n", curr_time);
         }// end if-output
 
