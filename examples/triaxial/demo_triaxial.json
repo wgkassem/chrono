@@ -26,7 +26,7 @@
     "tangentDampS2M": 10,
     "tangentDampS2W": 1e3,
 
-    "cohesion_ratio": 0.5,
+    "cohesion_ratio": 0.35,
     "adhesion_ratio_s2w": 0,
     "adhesion_ratio_s2m": 0,
 
