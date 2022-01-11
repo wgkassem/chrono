@@ -13,17 +13,17 @@
     "time_end": 2.0,
 
     "normalStiffS2S": 1e6,
-    "normalStiffS2M": 1e10,
+    "normalStiffS2M": 1e6,
     "normalStiffS2W": 0,
-    "normalDampS2S": 10,
-    "normalDampS2M": 10,
+    "normalDampS2S": 1e8,
+    "normalDampS2M": 1e8,
     "normalDampS2W": 0,
 
     "tangentStiffS2S": 1e6,
-    "tangentStiffS2M": 1e10,
+    "tangentStiffS2M": 1e6,
     "tangentStiffS2W": 0,
-    "tangentDampS2S": 10,
-    "tangentDampS2M": 10,
+    "tangentDampS2S": 50,
+    "tangentDampS2M": 50,
     "tangentDampS2W": 0,
 
     "cohesion_ratio": 0,
