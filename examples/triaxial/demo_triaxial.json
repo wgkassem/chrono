@@ -12,18 +12,18 @@
 	"step_size": 5e-5,
     "time_end": 2.0,
 
-    "normalStiffS2S": 1e6,
-    "normalStiffS2M": 1e6,
+    "normalStiffS2S": 1e5,
+    "normalStiffS2M": 1e5,
     "normalStiffS2W": 0,
-    "normalDampS2S": 1e8,
-    "normalDampS2M": 1e8,
+    "normalDampS2S": 1e3,
+    "normalDampS2M": 1e3,
     "normalDampS2W": 0,
 
-    "tangentStiffS2S": 1e6,
-    "tangentStiffS2M": 1e6,
+    "tangentStiffS2S": 1e4,
+    "tangentStiffS2M": 1e4,
     "tangentStiffS2W": 0,
-    "tangentDampS2S": 50,
-    "tangentDampS2M": 50,
+    "tangentDampS2S": 5,
+    "tangentDampS2M": 5,
     "tangentDampS2W": 0,
 
     "cohesion_ratio": 0,
@@ -32,7 +32,7 @@
 
     "static_friction_coeffS2S": 0.2,
     "static_friction_coeffS2W": 0.0,
-    "static_friction_coeffS2M": 0.0,
+    "static_friction_coeffS2M": 0.2,
     
     "verbose": false,
     "psi_T": 32,
