@@ -226,13 +226,11 @@ int main(int argc, char* argv[]) {
         auto points = sampler.SampleCylinderZ(center, sample_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
-        numSpheres = initialPos.size()
+        numSpheres = initialPos.size();
 
     }
-    numSpheres = initialPos.size()
+    numSpheres = initialPos.size();
     
-    // create initial velocity vector
-    std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
         ChVector<float> velo(0.,0.,0.); //-initialPos.at(i).x() / 5.f, -initialPos.at(i).x() / 5.f, 0.0f);
         initialVelo.push_back(velo);
