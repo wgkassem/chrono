@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     // add top
     mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f * scaling.z)); // push translation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
     mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
@@ -215,14 +215,14 @@ int main(int argc, char* argv[]) {
     utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos, initialVelo;
 
-    float hopper_top = cell_hgt/2.f +  + 5.f + scaling.z; 
+    float z_top = cell_hgt/2.f; 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, hopper_top);
+    ChVector<float> center(0.0f, 0.0f, z_top);
     // fill up each layer
     // particles start from 0 (middle) to cylinder_height/2 (top)
     size_t numSpheres = initialPos.size();
     
-    while (numSpheres < 10)  {
+    while (numSpheres < num_create_spheres)  {
         auto points = sampler.SampleCylinderZ(center, sample_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     numSpheres = initialPos.size();
     
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(0.,0.,0.); //-initialPos.at(i).x() / 5.f, -initialPos.at(i).x() / 5.f, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / 10.f, -initialPos.at(i).x() / 10.f, 0.0f);
         initialVelo.push_back(velo);
     }
 
