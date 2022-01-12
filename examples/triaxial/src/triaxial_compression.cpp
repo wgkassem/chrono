@@ -251,7 +251,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
     gpu_sys.WriteMeshes(out_dir + "/init.vtk");
-    return 0;
     // ===================================================
     //
     // Prepare main loop parameters
