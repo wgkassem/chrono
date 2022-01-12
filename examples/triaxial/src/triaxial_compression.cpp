@@ -173,6 +173,10 @@ int main(int argc, char* argv[]) {
     ChMatrix33<float> hopper_scale(ChVector<float>(1.5 * scaling.x, 1.5 * scaling.y, 0.5 * scaling.z));
     std::vector<float3> mesh_translations;
 
+    mesh_filenames.push_back("./models/cube.obj");
+    mesh_rotscales.push_back(mesh_scale);
+    mesh_translations.push_back(make_float3(0.,0.,0.));
+    mesh_masses.push_back(mixer_mass);
 
     // add hopper
     //mesh_filenames.push_back("./models/unit_cone_10to1.obj");
@@ -181,30 +185,30 @@ int main(int argc, char* argv[]) {
     //mesh_masses.push_back(mixer_mass);
 
     // add bottom
-    mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
-    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
-    mesh_masses.push_back(mixer_mass); // push mass
+    // mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
+    // mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    // mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
+    // mesh_masses.push_back(mixer_mass); // push mass
 
-    // add sides
-    for (int i=0; i<120; ++i){
-        mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
-        ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
-        mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation-scaling matrix
-        mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
-        mesh_masses.push_back(mixer_mass); // push standard mass
-    }
+    // // add sides
+    // for (int i=0; i<120; ++i){
+    //     mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
+    //     ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
+    //     mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation-scaling matrix
+    //     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
+    //     mesh_masses.push_back(mixer_mass); // push standard mass
+    // }
 
-    // add top
-    mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
-    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
-    mesh_masses.push_back(mixer_mass); // push mass
+    // // add top
+    // mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
+    // mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    // mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
+    // mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
         
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
-
+    return 0;
     // ======================================================
     //
     // Add the particles to the sim
@@ -374,7 +378,7 @@ int main(int argc, char* argv[]) {
         return delta;
     };
      
-    // continue simulation until the end
+    // create vectors to hold useful information on meshes
     ChVector<> myv, shift;
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
     for (unsigned int i=0; i < nmeshes; i++){
@@ -385,14 +389,27 @@ int main(int argc, char* argv[]) {
 
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-        // Move side plates
+
+        // Collect mesh positions and forces
+        float radial_press = 0.f;
+        for (unsigned int i = 0; i < nmeshes; i++){
+            gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
+            gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
+            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
+            meshForces[i] *= F_CGS_TO_SI;
+            
+            if (i>0 && i<nmeshes-1){
+                radial_press += meshForces[i].x(); // r-component
+            }
+        }
+        float diameter = 2.f * pow( pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2), 0.5);
+        radial_press /= gpu_sys.GetMaxParticleZ() * diameter * M_PI *1e-2; // N.m-2=Pa
 
         if (curr_time>=0.5 && curr_time<2.0){
-        for (unsigned int i=1; i<nmeshes-1; i++){
-            gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
-            shift.Set(sidePlate_advancePos( curr_time, meshPositions[i] ));
-            gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0); 
-        }
+            for (unsigned int i=1; i<nmeshes-1; i++){
+                shift.Set(sidePlate_advancePos( curr_time, meshPositions[i] ));
+                gpu_sys.ApplyMeshMotion(i,shift,q0, v0, w0); 
+            }
         }
         
         ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
@@ -409,19 +426,9 @@ int main(int argc, char* argv[]) {
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
-        for (unsigned int i = 0; i < nmeshes; i++){
-            gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
-            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
-            meshForces[i] *= F_CGS_TO_SI;                                        // change to SI
-        }
         //std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
         //std::cout << "\n";
 
-        float radial_press = 0.f;
-        for (unsigned int i=1; i < nmeshes-1; i++){
-            radial_press += meshForces[i].x(); // r-component
-        }
-        radial_press /= gpu_sys.GetMaxParticleZ() * M_PI * (cell_diam - 2.f*(curr_time-sidePlate_moveTime)*sidePlate_radial_vel)*1e-2; // N.m-2=Pa
         std::cout << "\nradial pressure = " << radial_press / 1000.f << "kPa\n";
 
         if (step % out_steps == 0){
