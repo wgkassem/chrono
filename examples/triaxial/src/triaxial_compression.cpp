@@ -173,10 +173,6 @@ int main(int argc, char* argv[]) {
     ChMatrix33<float> hopper_scale(ChVector<float>(1.5 * scaling.x, 1.5 * scaling.y, 0.5 * scaling.z));
     std::vector<float3> mesh_translations;
 
-    mesh_filenames.push_back("./models/cube.obj");
-    mesh_rotscales.push_back(mesh_scale);
-    mesh_translations.push_back(make_float3(0.,0.,0.));
-    mesh_masses.push_back(mixer_mass);
 
     // add hopper
     //mesh_filenames.push_back("./models/unit_cone_10to1.obj");
@@ -185,12 +181,12 @@ int main(int argc, char* argv[]) {
     //mesh_masses.push_back(mixer_mass);
 
     // add bottom
-    // mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
-    // mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    // mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
-    // mesh_masses.push_back(mixer_mass); // push mass
+    mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
+    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z)); // push translation
+    mesh_masses.push_back(mixer_mass); // push mass
 
-    // // add sides
+    // add sides
     // for (int i=0; i<120; ++i){
     //     mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
     //     ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // rotate by 3°*i around z-axis 
@@ -198,17 +194,34 @@ int main(int argc, char* argv[]) {
     //     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
     //     mesh_masses.push_back(mixer_mass); // push standard mass
     // }
+    unsigned int nrots = 120;
+    unsigned int nstacks = 1;
+    float dtheta = 360. / nrots; //degrees
+    float dz = cell_hgt / nstacks;
+    float base_triangle = M_PI * cell_diam / (float) nrots;
+    float height_triangle = cell_hgt / nstacks; // should be a multiple of cell_hgt
+    unsigned int ntriangles = 2 * nrots * nstack;
+    ChMatrix33<float> triangle_scale(ChVector<float>(base_triangle,1.,height_triangle));
 
-    // // add top
-    // mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
-    // mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    // mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
-    // mesh_masses.push_back(mixer_mass); // push mass
+    for (unsigned int i = 0; i < ntriangles; i++){
+        mesh_translations.push_back(make_float3(cell_rad, 0., 0.));
+        ChQuaternion<> quatRot = Q_from_AngAxis( (i/(2*nstacks)) * dtheta * CH_C_DEG_TO_RAD, VECT_Z); // stacked ntriangles
+        ChQuaternion<> quatFlip = Q_from_AngAxis((i%2) * M_PI / 2.f, VECT_Y); // if even then flip
+        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * ChMatrix33<float>(quatFlip) * triangle_scale);
+        mesh_translations.push_back(make_float3(0.0, cell_rad, -cell_hgt/2.f + (float) (i%nstacks) * dz));
+        mesh_masses.push_back(mixer_mass);
+    }
+
+    // add top
+    mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
+    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
+    mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
         
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
-    return 0;
+
     // ======================================================
     //
     // Add the particles to the sim
@@ -226,7 +239,7 @@ int main(int argc, char* argv[]) {
     // particles start from 0 (middle) to cylinder_height/2 (top)
     size_t numSpheres = initialPos.size();
     
-    while (numSpheres < num_create_spheres)  {
+    while (numSpheres < 1)  {
         auto points = sampler.SampleCylinderZ(center, sample_rad - 0.05*sample_rad, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
@@ -256,6 +269,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
     gpu_sys.WriteMeshes(out_dir + "/init.vtk");
+    return 0;
     // ===================================================
     //
     // Prepare main loop parameters
