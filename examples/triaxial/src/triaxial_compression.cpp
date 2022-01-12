@@ -170,12 +170,13 @@ int main(int argc, char* argv[]) {
     // std::vector<string> mesh_side_filenames;
     std::vector<ChMatrix33<float>> mesh_rotscales;
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
+    ChMatrix33<float> hopper_scale(ChVector<float>(2. * scaling.x, 2. * scaling.y, 0.5 * scaling.z));
     std::vector<float3> mesh_translations;
 
 
     // add hopper
     mesh_filenames.push_back("./models/unit_cone_10to1.obj");
-    mesh_rotscales.push_back(mesh_scale); // hopper has same radius as cell
+    mesh_rotscales.push_back(hopper_scale); // hopper has same radius as cell
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cell_hgt/2.f + 5.f)); // move the hopper 5cm above the cell
     mesh_masses.push_back(mixer_mass);
 
@@ -249,6 +250,7 @@ int main(int argc, char* argv[]) {
     std::cout << nummeshes << " meshes generated!" << std::endl;
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
+    gpu_sys.WriteMeshes("init.vtk");
     // ===================================================
     //
     // Prepare main loop parameters
