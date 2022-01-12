@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     utils::PDSampler<float> sampler(1.5f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
-    float hopper_top = cell_hgt + 5.f; 
+    float hopper_top = cell_hgt/2.f +  + 5.f + scaling.z(); 
     // randomize by layer
     ChVector<float> center(0.0f, 0.0f, hopper_top);
     // fill up each layer
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     std::cout << nummeshes << " meshes generated!" << std::endl;
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
-    gpu_sys.WriteMeshes("init.vtk");
+    gpu_sys.WriteMeshes(out_dir + "/init.vtk");
     // ===================================================
     //
     // Prepare main loop parameters
