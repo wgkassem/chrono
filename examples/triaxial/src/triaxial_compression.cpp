@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     // initialize sampler, set distance between center of spheres as 2.1r
     utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
-    std::vector<ChVector<float>> initialPos;
+    std::vector<ChVector<float>> initialPos, initialVelo;
 
     float hopper_top = cell_hgt/2.f +  + 5.f + scaling.z; 
     // randomize by layer
