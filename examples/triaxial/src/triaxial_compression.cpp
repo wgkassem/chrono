@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     // std::vector<string> mesh_side_filenames;
     std::vector<ChMatrix33<float>> mesh_rotscales;
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
-    ChMatrix33<float> hopper_scale(ChVector<float>(2. * scaling.x, 2. * scaling.y, 0.5 * scaling.z));
+    ChMatrix33<float> hopper_scale(ChVector<float>(1.5 * scaling.x, 1.5 * scaling.y, 0.5 * scaling.z));
     std::vector<float3> mesh_translations;
 
 
