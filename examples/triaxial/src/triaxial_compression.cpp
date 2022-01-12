@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
         initialVelo.push_back(velo);
     }
 
-    // gpu_sys.SetParticlePositions(initialPos, initialVelo);
+    gpu_sys.SetParticlePositions(initialPos, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     // ===================================================
