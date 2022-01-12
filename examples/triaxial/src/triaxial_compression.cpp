@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     float dz = cell_hgt / nstacks;
     float base_triangle = M_PI * cell_diam / (float) nrots;
     float height_triangle = cell_hgt / nstacks; // should be a multiple of cell_hgt
-    unsigned int ntriangles = 2 * nrots * nstack;
+    unsigned int ntriangles = 2 * nrots * nstacks;
     ChMatrix33<float> triangle_scale(ChVector<float>(base_triangle,1.,height_triangle));
 
     for (unsigned int i = 0; i < ntriangles; i++){
