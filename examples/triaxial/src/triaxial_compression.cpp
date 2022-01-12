@@ -48,15 +48,20 @@ float L_CGS_TO_SI = 1e-2f;
 
 // sample information
 ChVector<float> sample_center(0.f, 0.f, 0.f); //cm
-float sample_hgt = 23.;  //cm
-float sample_diam = 20.; //cm
+float sample_hgt = 10.;  //cm
+float sample_diam = 5.; //cm
 float sample_rad = sample_diam / 2.f;
 
 // triaxial cell information
 ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-float cell_hgt = 25.f;  //cm
-float cell_diam = 20.f;  //cm
+float cell_hgt = 10.f;  //cm
+float cell_diam = 5.f;  //cm
 float cell_rad = cell_diam / 2.f;
+
+float water_ratio = 0.633; // m_w / m_s
+float sample_volume = M_PI * sample_diam * sample_diam / 4.f * sample_hgt; 
+float sample_mass = 278.1; //g m_s + m_w
+float sample_solid_mass = sample_mass / (1.f + water_ratio);
 
 ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
     ChVector<> vcyl;
@@ -144,6 +149,10 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetFixedStepSize(params.step_size);
     gpu_sys.SetBDFixed(true);
 
+    float volume_grain = pow(params.sphere_radius,3) * M_PI * 4.f/3.f;
+    float mass_grain = params.sphere_density * volume_grain; 
+    unsigned int num_create_spheres = round( sample_solid_mass / mass_grain );
+
     // ================================================
     //
     // Read and add the mesh(es) to the simulation
@@ -163,6 +172,12 @@ int main(int argc, char* argv[]) {
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
     std::vector<float3> mesh_translations;
 
+
+    // add hopper
+    mesh_filenames.push_back("./models/unit_hopper_10to1.obj");
+    mesh_rotscales.push_back(mesh_scale); // hopper has same radius as cell
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cell_hgt/2.f + 5.f)); // move the hopper 5cm above the cell
+    mesh_masses.push_back(mixer_mass);
 
     // add bottom
     mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
@@ -196,17 +211,18 @@ int main(int argc, char* argv[]) {
     // ======================================================    
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
+    utils::PDSampler<float> sampler(1.5f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
+    float hopper_top = cell_hgt + 5.f; 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, -sample_hgt/2.f);
+    ChVector<float> center(0.0f, 0.0f, hopper_top);
     // fill up each layer
     // particles start from 0 (middle) to cylinder_height/2 (top)
-    while (center.z() + params.sphere_radius < sample_hgt / 2.0f )  {
+    for (unsigned int i=0; i < num_create_spheres; i++)  {
         auto points = sampler.SampleCylinderZ(center, sample_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
-        center.z() += 2.1f * params.sphere_radius;
+        center.z() += 1.5f * params.sphere_radius;
     }
 
     size_t numSpheres = initialPos.size();
@@ -214,7 +230,7 @@ int main(int argc, char* argv[]) {
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / cell_rad, -initialPos.at(i).x() / cell_rad, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / 5.f, -initialPos.at(i).x() / 5.f, 0.0f);
         initialVelo.push_back(velo);
     }
 
@@ -250,7 +266,7 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 0.5) {
+    while (curr_time < 1.5) {
         
         if (step % out_steps == 0){
 
@@ -307,7 +323,7 @@ int main(int argc, char* argv[]) {
         step++;
 
     };
-
+    return 0;
     // ============================================
     //
     // Compression
