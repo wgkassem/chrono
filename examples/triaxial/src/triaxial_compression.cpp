@@ -175,10 +175,10 @@ int main(int argc, char* argv[]) {
 
 
     // add hopper
-    mesh_filenames.push_back("./models/unit_cone_10to1.obj");
-    mesh_rotscales.push_back(hopper_scale); // hopper has same radius as cell
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cell_hgt/2.f + 5.f)); // move the hopper 5cm above the cell
-    mesh_masses.push_back(mixer_mass);
+    //mesh_filenames.push_back("./models/unit_cone_10to1.obj");
+    //mesh_rotscales.push_back(hopper_scale); // hopper has same radius as cell
+    //mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cell_hgt/2.f + 5.f)); // move the hopper 5cm above the cell
+    //mesh_masses.push_back(mixer_mass);
 
     // add bottom
     mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
