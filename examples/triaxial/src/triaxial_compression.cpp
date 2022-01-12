@@ -205,7 +205,6 @@ int main(int argc, char* argv[]) {
         
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
-    gpu_sys.WriteMeshes(out_dir + "/init.vtk");
     // ======================================================
     //
     // Add the particles to the sim
@@ -236,7 +235,7 @@ int main(int argc, char* argv[]) {
         initialVelo.push_back(velo);
     }
 
-    gpu_sys.SetParticlePositions(initialPos, initialVelo);
+    // gpu_sys.SetParticlePositions(initialPos, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     // ===================================================
@@ -251,6 +250,8 @@ int main(int argc, char* argv[]) {
     std::cout << nummeshes << " meshes generated!" << std::endl;
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
+    gpu_sys.WriteMeshes(out_dir + "/init.vtk");
+    return 0;
     // ===================================================
     //
     // Prepare main loop parameters
