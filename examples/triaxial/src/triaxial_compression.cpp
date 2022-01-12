@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     ChVector<float> center(0.0f, 0.0f, hopper_top);
     // fill up each layer
     // particles start from 0 (middle) to cylinder_height/2 (top)
-    for (unsigned int i=0; i < num_create_spheres; i++)  {
+    for (unsigned int i=0; i < 1; i++)  {
         auto points = sampler.SampleCylinderZ(center, sample_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 1.5f * params.sphere_radius;
