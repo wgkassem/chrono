@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     // ======================================================    
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::PDSampler<float> sampler(1.5f * params.sphere_radius);
+    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
     float hopper_top = cell_hgt/2.f +  + 5.f + scaling.z; 
@@ -220,18 +220,21 @@ int main(int argc, char* argv[]) {
     ChVector<float> center(0.0f, 0.0f, hopper_top);
     // fill up each layer
     // particles start from 0 (middle) to cylinder_height/2 (top)
-    for (unsigned int i=0; i < 1; i++)  {
+    size_t numSpheres = initialPos.size();
+    
+    while (numSpheres < 10)  {
         auto points = sampler.SampleCylinderZ(center, sample_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
-        center.z() += 1.5f * params.sphere_radius;
-    }
+        center.z() += 2.1f * params.sphere_radius;
+        numSpheres = initialPos.size()
 
-    size_t numSpheres = initialPos.size();
+    }
+    numSpheres = initialPos.size()
     
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / 5.f, -initialPos.at(i).x() / 5.f, 0.0f);
+        ChVector<float> velo(0.,0.,0.); //-initialPos.at(i).x() / 5.f, -initialPos.at(i).x() / 5.f, 0.0f);
         initialVelo.push_back(velo);
     }
 
