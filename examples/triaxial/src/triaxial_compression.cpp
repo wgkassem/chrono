@@ -218,6 +218,8 @@ int main(int argc, char* argv[]) {
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f-1.f)); // push translation top top of box
     mesh_masses.push_back(mixer_mass); // push mass
+
+    std::cout << mesh_filenames.size() << ", "<< mesh_rotscales.size() << ", "<< mesh_translations.size() << ", "<< mesh_masses.size() << "\n";
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
         
