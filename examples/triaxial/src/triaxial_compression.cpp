@@ -451,12 +451,12 @@ int main(int argc, char* argv[]) {
                     //meshForces[i] *= F_CGS_TO_SI;
                 
                 }
-                if (i==nmeshes-1){
-                    shift.Set(topPlate_posFunc(curr_time));
-                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
-                }
                 //std::cout << "moving mesh i = " << i << "\n";
                 total_radial_press += meshForces[i].x(); // r-component
+            }
+            if (i==nmeshes-1){
+                shift.Set(topPlate_posFunc(curr_time));
+                gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
             }
         }
 
@@ -468,7 +468,7 @@ int main(int argc, char* argv[]) {
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        std::cout << "top pos_z: " << meshPositions[0].z() << " cm, ";
+        std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
         std::cout << "top press: " << top_axial_press / 1000.f << " kPa, ";
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
