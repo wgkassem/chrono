@@ -360,11 +360,11 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_torques; // forces on the top plate
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + 2.f * params.sphere_radius); // initial top plate position
     std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
-    float topPlate_moveTime = curr_time+2.0;
+    float topPlate_moveTime = curr_time;
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -10.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
