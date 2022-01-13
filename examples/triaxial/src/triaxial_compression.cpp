@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     //     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
     //     mesh_masses.push_back(mixer_mass); // push standard mass
     // }
-    unsigned int nrots = 360;
+    unsigned int nrots = 120;
     unsigned int nstacks = 1;
     float dtheta = 360. / nrots; //degrees
     float dz = cell_hgt / nstacks;
@@ -203,11 +203,11 @@ int main(int argc, char* argv[]) {
     unsigned int ntiles = nrots * nstacks;
     ChMatrix33<float> tile_scale(ChVector<float>(base_tile,1.,height_tile));
 
-    for (unsigned int i = 0; i < nrots; i++){
+    for (unsigned int i = 0; i < nrots / 4; i++){
         ChQuaternion<> quatRot = Q_from_AngAxis( (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD, VECT_Z); // stacked ntriangles
         mesh_filenames.push_back("./models/unit_tritile_-y.obj");
         mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
-        mesh_translations.push_back(make_float3(cell_rad, 0.0, -cell_hgt/2.f + (float) (i%nstacks) * dz));
+        mesh_translations.push_back(make_float3(cell_rad, 0.0, 0.5 * (height_tile - cell_hgt) + (float) (i%nstacks) * dz));
         mesh_masses.push_back(mixer_mass);
     }
 
