@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> quatRot = Q_from_AngAxis( (i/(2*nstacks)) * dtheta * CH_C_DEG_TO_RAD, VECT_Z); // stacked ntriangles
         ChQuaternion<> quatFlip = Q_from_AngAxis((i%2) * M_PI / 2.f, VECT_Y); // if even then flip
         mesh_filenames.push_back("./models/unit_triangle_-y.obj");
-        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * ChMatrix33<float>(quatFlip) * triangle_scale);
+        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * triangle_scale);
         mesh_translations.push_back(make_float3(0.0, cell_rad, -cell_hgt/2.f + (float) (i%nstacks) * dz));
         mesh_masses.push_back(mixer_mass);
     }
