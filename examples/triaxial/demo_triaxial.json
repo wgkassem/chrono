@@ -5,7 +5,7 @@
     
     "box_X": 30.0,
 	"box_Y": 30.0,
-	"box_Z": 30.0,
+	"box_Z": 50.0,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
