@@ -210,10 +210,10 @@ int main(int argc, char* argv[]) {
     for (unsigned int i = 0; i < ntiles; i++){
         float rot_ang = (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD;
         ChQuaternion<> quatRot = Q_from_AngAxis( rot_ang, VECT_Z); // stacked ntriangles
-        mesh_filenames.push_back("./models/unit_tritile_-y.obj");
-        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
-        mesh_translations.push_back(make_float3(cell_rad*cos(rot_ang), cell_rad*sin(rot_ang), 0.5 * (tile_height - cell_hgt) + (float) (i%nstacks) * dz));
-        mesh_masses.push_back(mixer_mass);
+//        mesh_filenames.push_back("./models/unit_tritile_-y.obj");
+//        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
+//       mesh_translations.push_back(make_float3(cell_rad*cos(rot_ang), cell_rad*sin(rot_ang), 0.5 * (tile_height - cell_hgt) + (float) (i%nstacks) * dz));
+//      mesh_masses.push_back(mixer_mass);
     }
 
     // add top
