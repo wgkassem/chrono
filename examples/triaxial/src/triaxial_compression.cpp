@@ -364,7 +364,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -10.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
@@ -442,14 +442,18 @@ int main(int argc, char* argv[]) {
                 float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
                     
-                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
-                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                    //shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
+                    //gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                     //std::cout << "i, press = " << i << ", " << meshForces[i].x() / tile_base / tile_height * 100. << "\n";   
                     //gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
                     //gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
                     //meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
                     //meshForces[i] *= F_CGS_TO_SI;
                 
+                }
+                if (i==nmeshes-1){
+                    shift.Set(topPlate_posFunc(curr_time));
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
                 //std::cout << "moving mesh i = " << i << "\n";
                 total_radial_press += meshForces[i].x(); // r-component
