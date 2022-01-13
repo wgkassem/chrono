@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     //     mesh_masses.push_back(mixer_mass); // push standard mass
     // }
     unsigned int nrots = 120;
-    unsigned int nstacks = 2;
+    unsigned int nstacks = 20;
     float dtheta = 360. / nrots; //degrees
     float dz = cell_hgt / nstacks;
     float tile_base = M_PI * cell_diam / (float) nrots;
