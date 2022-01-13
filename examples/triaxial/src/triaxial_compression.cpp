@@ -204,7 +204,6 @@ int main(int argc, char* argv[]) {
     ChMatrix33<float> triangle_scale(ChVector<float>(base_triangle,1.,height_triangle));
 
     for (unsigned int i = 0; i < ntriangles; i++){
-        mesh_translations.push_back(make_float3(cell_rad, 0., 0.));
         ChQuaternion<> quatRot = Q_from_AngAxis( (i/(2*nstacks)) * dtheta * CH_C_DEG_TO_RAD, VECT_Z); // stacked ntriangles
         ChQuaternion<> quatFlip = Q_from_AngAxis((i%2) * M_PI / 2.f, VECT_Y); // if even then flip
         mesh_filenames.push_back("./models/unit_triangle_-y.obj");
