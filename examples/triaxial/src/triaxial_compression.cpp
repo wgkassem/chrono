@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
         }
 
         total_radial_press /= (nmeshes-2) * tile_height * tile_base * 1e-2; // N.m-2=Pa
-        std::cin >> tmp;
+        //std::cin >> tmp;
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
