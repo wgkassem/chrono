@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos, initialVelo;
 
-    float z_top = cell_hgt/2.f; 
+    float z_top = 0; 
     // randomize by layer
     ChVector<float> center(0.0f, 0.0f, z_top);
     // fill up each layer
