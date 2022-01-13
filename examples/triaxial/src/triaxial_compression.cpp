@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // ======================================================    
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
+    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos, initialVelo;
 
     float z_top = cell_hgt/2.f; 
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     numSpheres = initialPos.size();
     
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / 10.f, -initialPos.at(i).y() / 10.f, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / cell_rad, -initialPos.at(i).x() / cell_rad, 0.0f);
         initialVelo.push_back(velo);
     }
 
