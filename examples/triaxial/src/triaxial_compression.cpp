@@ -201,9 +201,9 @@ int main(int argc, char* argv[]) {
     float base_tile = M_PI * cell_diam / (float) nrots;
     float height_tile = cell_hgt / nstacks; // should be a multiple of cell_hgt
     unsigned int ntiles = nrots * nstacks;
-    ChMatrix33<float> tile_scale(ChVector<float>(base_tile,1.,height_tile));
+    ChMatrix33<float> tile_scale(ChVector<float>(1., base_tile, height_tile));
 
-    for (unsigned int i = 0; i < nrots / 4; i++){
+    for (unsigned int i = 0; i < 1; i++){
         ChQuaternion<> quatRot = Q_from_AngAxis( (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD, VECT_Z); // stacked ntriangles
         mesh_filenames.push_back("./models/unit_tritile_-y.obj");
         mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
