@@ -396,8 +396,9 @@ int main(int argc, char* argv[]) {
         return delta;
     };
 
-    float tile_radial_step = params.sphere_radius * 0.10; // 30% sphere radius movement
-    std::function<ChVector<float>(ChVector<>&, float)> tile_advancePosDr = [&tile_radial_step, &sidePlate_moveTime](ChVector<>& pos, float dir){ 
+    float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
+    float tile_radial_vel = tile_radial_step / params.step_size;
+    std::function<ChVector<float>(ChVector<>&, float, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime](ChVector<>& pos, float gamma, float t){ 
         ChVector<float> delta(0.f,0.f, 0.f);
         float x = pos.x();
         float y = pos.y();
@@ -406,8 +407,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = x + dir * tile_radial_step * cstheta;
-        float dy = y + dir * tile_radial_step * sntheta;
+        float dx = - gamma * (t - sidePlate_moveTime) * tile_radial_vel * cstheta;
+        float dy = - gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -440,7 +441,7 @@ int main(int argc, char* argv[]) {
                 float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
                     
-                    shift.Set( tile_advancePosDr(meshPositions[i], sgn(tile_press_diff)) );
+                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                     
                     //gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
