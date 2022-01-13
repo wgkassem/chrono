@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     unsigned int ntiles = nrots * nstacks;
     ChMatrix33<float> tile_scale(ChVector<float>(1., base_tile, height_tile));
 
-    for (unsigned int i = 0; i < 10; i++){
+    for (unsigned int i = 0; i < ntiles; i++){
         float rot_ang = (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD;
         ChQuaternion<> quatRot = Q_from_AngAxis( rot_ang, VECT_Z); // stacked ntriangles
         mesh_filenames.push_back("./models/unit_tritile_-y.obj");
