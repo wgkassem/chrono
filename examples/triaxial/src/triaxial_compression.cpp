@@ -458,14 +458,14 @@ int main(int argc, char* argv[]) {
 
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
         total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
-        float top_axial_press = meshForces[nmeshes-1].z() / M_PI * pow(cell_new_rad,2);
+        float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
         //std::cin >> tmp;
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        std::cout << "top pos_z: " << meshPositions[0].z() << " cm";
-        std::cout << "top press: " << top_axial_press / 1000.f << " kPa";
+        std::cout << "top pos_z: " << meshPositions[0].z() << " cm, ";
+        std::cout << "top press: " << top_axial_press / 1000.f << " kPa, ";
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
