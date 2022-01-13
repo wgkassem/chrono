@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
                     
                     shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
-                    std::cout << "i, press = " << i << ", " << meshForces[i].x() / tile_base / tile_height * 100. << "\n";   
+                    //std::cout << "i, press = " << i << ", " << meshForces[i].x() / tile_base / tile_height * 100. << "\n";   
                     //gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
                     //gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
                     //meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
