@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
     gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
-
+    string tmp;
     float sigma3 = 10000.f; // Pa, consolidation stress
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
                     
                     shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
-                    
+                    std::count << "i, press = " << i << ", " << meshForces[i].x() / tile_base / tile_height * 100. << "\n";   
                     //gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
                     //gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
                     //meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
         }
 
         total_radial_press /= (nmeshes-2) * tile_height * tile_base * 1e-2; // N.m-2=Pa
-
+        std::cin >> tmp;
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
