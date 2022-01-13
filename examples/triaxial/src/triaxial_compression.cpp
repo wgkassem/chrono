@@ -358,7 +358,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 2.1 * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - (params.box_Z - 5.f) + abs( gpu_sys.GetMaxParticleZ() ) + 2.1 * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time+2.0;
     ChQuaternion<float> q0(1,0,0,0);
     
@@ -407,8 +407,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = -(t - sidePlate_moveTime) * tile_radial_vel * cstheta;
-        float dy = -(t - sidePlate_moveTime) * tile_radial_vel * sntheta;
+        float dx = -gamma *(t - sidePlate_moveTime) * tile_radial_vel * cstheta;
+        float dy = -gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
