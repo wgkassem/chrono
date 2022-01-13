@@ -349,7 +349,6 @@ int main(int argc, char* argv[]) {
         step++;
 
     };
-    return 0;
     // ============================================
     //
     // Compression
