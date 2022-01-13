@@ -358,7 +358,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - (params.box_Z - 5.f) + abs( gpu_sys.GetMaxParticleZ() ) + 2.1 * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - (params.box_Z/2.f - 5.f + cell_hgt/2.f) + abs( gpu_sys.GetMaxParticleZ() ) + params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time+2.0;
     ChQuaternion<float> q0(1,0,0,0);
     
