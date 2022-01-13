@@ -407,8 +407,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = - gamma * (t - sidePlate_moveTime) * tile_radial_vel * cstheta;
-        float dy = - gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
+        float dx = (t - sidePlate_moveTime) * tile_radial_vel * cstheta;
+        float dy = (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
