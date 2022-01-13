@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     //     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // no translation for side slab
     //     mesh_masses.push_back(mixer_mass); // push standard mass
     // }
-    unsigned int nrots = 360;
+    unsigned int nrots = 120;
     unsigned int nstacks = ceil(cell_hgt / 2.);
     float dtheta = 360. / nrots; //degrees
     float dz = cell_hgt / nstacks;
