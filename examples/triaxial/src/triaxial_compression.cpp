@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     size_t numSpheres = initialPos.size();
     
     while (numSpheres < num_create_spheres)  {
-        auto points = sampler.SampleCylinderZ(center, sample_rad - 0.05*sample_rad, 0);
+        auto points = sampler.SampleCylinderZ(center, sample_rad - 0.1*sample_rad, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
         numSpheres = initialPos.size();
