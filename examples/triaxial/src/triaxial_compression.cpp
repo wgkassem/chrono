@@ -358,7 +358,7 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 5.f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, - cell_hgt + abs( gpu_sys.GetMaxParticleZ() ) + 2.1 * params.sphere_radius); // initial top plate position
     float topPlate_moveTime = curr_time+2.0;
     ChQuaternion<float> q0(1,0,0,0);
     
@@ -421,6 +421,8 @@ int main(int argc, char* argv[]) {
         meshPositions.push_back(ChVector<float>(0.,0.,0.));
     }
 
+    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
+    gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
 
     float sigma3 = 10000.f; // Pa, consolidation stress
     while (curr_time < params.time_end) {
