@@ -12,14 +12,14 @@
 	"step_size": 5e-5,
     "time_end": 1.5,
 
-    "normalStiffS2S": 5e5,
+    "normalStiffS2S": 3e6,
     "normalStiffS2M": 1e5,
     "normalStiffS2W": 0,
     "normalDampS2S": 1e3,
     "normalDampS2M": 1e3,
     "normalDampS2W": 0,
 
-    "tangentStiffS2S": 5e4,
+    "tangentStiffS2S": 3e5,
     "tangentStiffS2M": 1e4,
     "tangentStiffS2W": 0,
     "tangentDampS2S": 5,
