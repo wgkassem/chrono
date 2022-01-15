@@ -15,9 +15,9 @@
     "normalStiffS2S": 7e8,
     "normalStiffS2W": 7e6,
     "normalStiffS2M": 7e8,
-    "normalDampS2S": 1e2,
-    "normalDampS2W": 1e2,
-    "normalDampS2M": 1e2,
+    "normalDampS2S": 1e3,
+    "normalDampS2W": 1e3,
+    "normalDampS2M": 1e3,
 
     "tangentStiffS2S": 2e7,
     "tangentStiffS2M": 1e7,
