@@ -10,11 +10,11 @@
 	"grav_Y": 0,
 	"grav_Z": -980,
 	"step_size": 5e-5,
-    "time_end": 3.5,
+    "time_end": 5.5,
 
-    "normalStiffS2S": 1e8,
+    "normalStiffS2S": 1e9,
     "normalDampS2S": 1e2,
-    "tangentStiffS2S": 1e8,
+    "tangentStiffS2S": 1e9,
     "tangentDampS2S": 1e2,
     
     
