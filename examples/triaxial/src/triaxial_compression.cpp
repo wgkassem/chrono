@@ -364,7 +364,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -10.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.1f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
@@ -433,7 +433,7 @@ int main(int argc, char* argv[]) {
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-
+        
         // Collect mesh positions and forces
         float total_radial_press = 0.f;
         for (unsigned int i = 0; i < nmeshes; i++){
