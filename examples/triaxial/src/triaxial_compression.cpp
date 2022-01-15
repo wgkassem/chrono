@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
         
-        if (step % out_steps == 0){
+        if (true) { //step % out_steps == 0){
 
             // filenames for mesh, particles, force-per-mesh
             char filename[100], filenamemesh[100], filenameforce[100];;
