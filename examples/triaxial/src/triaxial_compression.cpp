@@ -427,6 +427,10 @@ int main(int argc, char* argv[]) {
     gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
     string tmp;
     float sigma3 = 10000.f; // Pa, consolidation stress
+    float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
+    float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
+
+    // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
 
@@ -463,8 +467,8 @@ int main(int argc, char* argv[]) {
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
         total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
         float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
-        //std::cin >> tmp;
-
+        solid_ratio = numSpheres * sphere_vol / meshPositions[nmeshes-1].z() / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
+        std::cout << " SR = " << solid_ratio << " ";
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
