@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
         total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
         float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
-        solid_ratio = numSpheres * sphere_vol / meshPositions[nmeshes-1].z() / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
+        solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
         std::cout << " SR = " << solid_ratio << " ";
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
