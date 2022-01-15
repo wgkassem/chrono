@@ -1,6 +1,6 @@
 {
 
-    "sphere_radius": 0.2,
+    "sphere_radius": 0.5,
     "sphere_density": 2.5,
     
     "box_X": 30.0,
@@ -12,27 +12,30 @@
 	"step_size": 5e-5,
     "time_end": 3.5,
 
-    "normalStiffS2S": 1e7,
-    "normalStiffS2W": 7e7,
-    "normalStiffS2M": 7e7,
-    "normalDampS2S": 0e5,
-    "normalDampS2W": 0e2,
-    "normalDampS2M": 0e2,
+    "normalStiffS2S": 1e8,
+    "normalDampS2S": 1e2,
+    "tangentStiffS2S": 1e8,
+    "tangentDampS2S": 1e2,
+    
+    
+    "normalStiffS2M": 1e8,
+    "normalDampS2M": 1e2,
+    "tangentStiffS2M": 1e8,
+    "tangentDampS2M": 1e2,
+    
+    
+    "normalStiffS2W": 1e8,
+    "normalDampS2W": 1e2,
+    "tangentStiffS2W": 1e8,
+    "tangentDampS2W": 1e2,
 
-    "tangentStiffS2S": 0e2,
-    "tangentStiffS2M": 0e3,
-    "tangentStiffS2W": 0e3,
-    "tangentDampS2S": 0,
-    "tangentDampS2M": 0,
-    "tangentDampS2W": 0,
-
-    "cohesion_ratio": 0,
+    "cohesion_ratio": 5,
     "adhesion_ratio_s2w": 0,
     "adhesion_ratio_s2m": 0,
 
-    "static_friction_coeffS2S": 0.2,
-    "static_friction_coeffS2W": 0,
-    "static_friction_coeffS2M": 0,
+    "static_friction_coeffS2S": 0.5,
+    "static_friction_coeffS2W": 0.5,
+    "static_friction_coeffS2M": 0.5,
     
     "verbose": false,
     "psi_T": 32,
