@@ -1,6 +1,6 @@
 {
 
-    "sphere_radius": 0.3,
+    "sphere_radius": 0.2,
     "sphere_density": 2.5,
     
     "box_X": 30.0,
@@ -15,16 +15,16 @@
     "normalStiffS2S": 7e8,
     "normalStiffS2W": 7e6,
     "normalStiffS2M": 7e8,
-    "normalDampS2S": 1e7,
-    "normalDampS2W": 1e7,
-    "normalDampS2M": 1e7,
+    "normalDampS2S": 1e2,
+    "normalDampS2W": 1e2,
+    "normalDampS2M": 1e2,
 
     "tangentStiffS2S": 2e7,
     "tangentStiffS2M": 1e7,
     "tangentStiffS2W": 1e7,
-    "tangentDampS2S": 5000,
-    "tangentDampS2M": 5000,
-    "tangentDampS2W": 5000,
+    "tangentDampS2S": 5,
+    "tangentDampS2M": 5,
+    "tangentDampS2W": 5,
 
     "cohesion_ratio": 0,
     "adhesion_ratio_s2w": 0,
