@@ -206,19 +206,23 @@ int main(int argc, char* argv[]) {
     unsigned int nstacks = 20;
     float dtheta = 360. / nrots; //degrees
     float dz = cell_hgt / nstacks;
-    float tile_base = M_PI * (cell_diam * 1.00) / (float) nrots;
-    float tile_height = cell_hgt / (float) nstacks; // should be a multiple of cell_hgt
+    float tile_base = M_PI * (cell_diam * 1.00);// / (float) nrots;
+    float tile_height = cell_hgt;// / (float) nstacks; // should be a multiple of cell_hgt
     unsigned int ntiles = nrots * nstacks;
     ChMatrix33<float> tile_scale(ChVector<float>(1., tile_base, tile_height));
 
-    for (unsigned int i = 0; i < ntiles; i++){
-        float rot_ang = (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD;
-        ChQuaternion<> quatRot = Q_from_AngAxis( rot_ang, VECT_Z); // stacked ntriangles
-        mesh_filenames.push_back("./models/unit_tritile_-y.obj");
-        mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
-      mesh_translations.push_back(make_float3(cell_rad*cos(rot_ang), cell_rad*sin(rot_ang), 0.5 * (tile_height - cell_hgt) + (float) (i%nstacks) * dz));
-      mesh_masses.push_back(mixer_mass);
-    }
+    //for (unsigned int i = 0; i < ntiles; i++){
+    //    float rot_ang = (float) (i/nstacks) * dtheta * CH_C_DEG_TO_RAD;
+    //    ChQuaternion<> quatRot = Q_from_AngAxis( rot_ang, VECT_Z); // stacked ntriangles
+    //    mesh_filenames.push_back("./models/unit_tritile_-y.obj");
+    //    mesh_rotscales.push_back(ChMatrix33<float>(quatRot) * tile_scale);
+    //    mesh_translations.push_back(make_float3(cell_rad*cos(rot_ang), cell_rad*sin(rot_ang), 0.5 * (tile_height - cell_hgt) + (float) (i%nstacks) * dz));
+    //    mesh_masses.push_back(mixer_mass);
+    //}i
+    mesh_filenames.push_back("./models/double_open_unit_cylinder.obj");
+    mesh_rotscales.push_back(mesh_scale);
+    mesh_translations.push_back(make_float3(0,0,0));
+    mesh_masses.push_back(mixer_mass);
 
     // add top
     mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
