@@ -19,15 +19,15 @@
     
     
     "normalStiffS2M": 1e12,
-    "normalDampS2M": 1e11,
+    "normalDampS2M": 4e11,
     "tangentStiffS2M": 1e12,
-    "tangentDampS2M": 1e11,
+    "tangentDampS2M": 4e11,
     
     
     "normalStiffS2W": 1e12,
-    "normalDampS2W": 1e11,
+    "normalDampS2W": 4e11,
     "tangentStiffS2W": 1e12,
-    "tangentDampS2W": 1e11,
+    "tangentDampS2W": 4e11,
 
     "cohesion_ratio": 0,
     "adhesion_ratio_s2w": 0,
