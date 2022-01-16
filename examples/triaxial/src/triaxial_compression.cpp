@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     float scale_z = cell_hgt; 
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     std::vector<float> mesh_masses;
-    float mixer_mass = 10;
+    float mixer_mass = 100;
 
     std::vector<string> mesh_filenames;
     // std::vector<string> mesh_side_filenames;
