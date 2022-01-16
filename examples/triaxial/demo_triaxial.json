@@ -9,12 +9,12 @@
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
-	"step_size": 1e-7,
+	"step_size": 1e-6,
     "time_end": 5.5,
 
-    "normalStiffS2S": 1e9,
-    "normalDampS2S": 1e7,
-    "tangentStiffS2S": 1e8,
+    "normalStiffS2S": 1e11,
+    "normalDampS2S": 1e9,
+    "tangentStiffS2S": 1e10,
     "tangentDampS2S": 1e7,
     
     
