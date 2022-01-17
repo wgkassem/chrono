@@ -12,7 +12,7 @@
 	"step_size": 5e-5,
     "time_end": 5.5,
 
-    "normalStiffS2S": 1e7,
+    "normalStiffS2S": 1e9,
     "normalDampS2S": 1e4,
     "tangentStiffS2S": 2e6,
     "tangentDampS2S": 50,
