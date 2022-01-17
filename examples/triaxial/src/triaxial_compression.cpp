@@ -403,7 +403,7 @@ int main(int argc, char* argv[]) {
     };
 
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
-    float tile_radial_vel = 2.; // max speed is cm.s-1
+    float tile_radial_vel = -2.; // max speed is cm.s-1
     std::function<ChVector<float>(ChVector<>&, float, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime](ChVector<>& pos, float gamma, float t){ 
         ChVector<float> delta(0.f,0.f, 0.f);
         float x = pos.x();
@@ -413,8 +413,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = -gamma *(t - sidePlate_moveTime) * tile_radial_vel * cstheta;
-        float dy = -gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
+        float dx = gamma *(t - sidePlate_moveTime) * tile_radial_vel * cstheta;
+        float dy = gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
