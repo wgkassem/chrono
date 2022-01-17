@@ -400,7 +400,7 @@ int main(int argc, char* argv[]) {
         float dx = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * cstheta;
         float dy = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * sntheta;
         mesh_ticks(istep+1, imesh) = sqrt(dx*dx+dy*dy);
-        if (imesh == 1) {std::cout << "\n\nshift old, new = " << mesh_ticks[istep,imesh] << ", " << mesh_ticks(istep+1,imesh) << "\n\n";}
+        if (imesh == 1) {std::cout << "\n\nshift old, new = " << mesh_ticks(istep,imesh) << ", " << mesh_ticks(istep+1,imesh) << "\n\n";}
         delta.Set(dx,dy,0.f);
         return delta;
     };
