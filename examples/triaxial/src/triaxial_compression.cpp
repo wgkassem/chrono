@@ -361,6 +361,7 @@ int main(int argc, char* argv[]) {
     //=============================================
     // Useful information
     unsigned int nc=0; // number of contacts
+    float step_size = params.step_size;
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
@@ -369,23 +370,22 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.03f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.2f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
-    std::function<ChVector<float>(float,float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t, float gamma){
-        ChVector<> pos(topPlate_offset);
-        pos.Set(topPlate_offset.x() + gamma * topPlate_vel.x() * (t - topPlate_moveTime),  
-                topPlate_offset.y() + gamma * topPlate_vel.y() * (t - topPlate_moveTime),  
-                topPlate_offset.z() + gamma * topPlate_vel.z() * (t - topPlate_moveTime) );
-        
-        return pos;
+    std::function<ChVector<>(float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size](float gamma){
+        ChVector<> shift(0,0,0);
+        shift.Set(gamma * topPlate_vel.x() * step_size,  
+                gamma * topPlate_vel.y() * step_size,  
+                gamma * topPlate_vel.z() * step_size );
+        return shift;
     };
 
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
-    float tile_radial_vel = -0.02; // max speed is cm.s-1
-    std::function<ChVector<float>(ChVector<>&, float, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime](ChVector<>& pos, float gamma, float t){ 
+    float tile_radial_vel = -0.2; // max speed is cm.s-1
+    std::function<ChVector<float>(ChVector<>&, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime, &step_size](ChVector<>& pos, float gamma){ 
         ChVector<float> delta(0.f,0.f, 0.f);
         float x = pos.x();
         float y = pos.y();
@@ -394,8 +394,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = gamma *(t - sidePlate_moveTime) * tile_radial_vel * cstheta;
-        float dy = gamma * (t - sidePlate_moveTime) * tile_radial_vel * sntheta;
+        float dx = gamma * step_size * tile_radial_vel * cstheta;
+        float dy = gamma * step_size * tile_radial_vel * sntheta;
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -439,8 +439,8 @@ int main(int argc, char* argv[]) {
             if (i>0 && i<nmeshes-1){ // tile
                 float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
-                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / abs(tile_press_diff), curr_time) );
-                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / abs(tile_press_diff)) );
+                    gpu_sys.ApplyMeshMotion(i, shift+meshPositions[i], q0, v0, w0);
                 }
                 total_radial_press += meshForces[i].x(); // r-component
             }
@@ -448,8 +448,8 @@ int main(int argc, char* argv[]) {
             if (i==nmeshes-1){
                 float top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
-                    shift.Set(topPlate_posFunc(curr_time, top_press_diff/abs(top_press_diff)));
-                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                    shift.Set(topPlate_posFunc(top_press_diff/abs(top_press_diff)));
+                    gpu_sys.ApplyMeshMotion(i, shift+meshPositions[i], q0, v0, w0);
                 }
             }
         }
