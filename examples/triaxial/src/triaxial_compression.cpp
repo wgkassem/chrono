@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.25f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.05f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float,float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t, float gamma){
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -.5f;  // cm.s-1
+    float sidePlate_radial_vel = -.1f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
     gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
     string tmp;
-    float sigma3 = 200.f; // Pa, consolidation stress
+    float sigma3 = 1000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
+        total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
         float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
         std::cout << " SR = " << solid_ratio << " ";
@@ -482,7 +482,8 @@ int main(int argc, char* argv[]) {
         std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
         std::cout << "top press: " << top_axial_press / 1000.f << " kPa, ";
         std::cout << ", numContacts: " << nc;
-        std::cout << "\nradial pressure = " << total_radial_press / 1000.f << "kPa\n";
+        std::cout << "\nradial pressure = " << total_radial_press / 1000.f << "kPa";
+        std::cout << " radius = " << cell_new_rad*100 << " cm\n";
 
         if (step % out_steps == 0){
 
