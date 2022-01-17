@@ -362,22 +362,21 @@ int main(int argc, char* argv[]) {
     // Useful information
     unsigned int nc=0; // number of contacts
     float step_size = params.step_size;
-    ChVector<> topPlate_forces; // forces on the top plate
-    ChVector<> topPlate_torques; // forces on the top plate
+    float topPlate_moveTime = curr_time;
+    
+    Eigen::MatrixXf mesh_ticks(total_frames - step, nmeshes);
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
     std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
-    float topPlate_moveTime = curr_time;
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
     ChVector<> topPlate_vel(0.f, 0.f, -.2f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
-    std::function<ChVector<>(float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size](float gamma){
-        ChVector<> shift(0,0,0);
-        shift.Set(gamma * topPlate_vel.x() * step_size,  
-                gamma * topPlate_vel.y() * step_size,  
-                gamma * topPlate_vel.z() * step_size );
+    std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
+        ChVector<> shift(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1));
+        shift.Set(0, 0, shift.z() + gamma * topPlate_vel.z() * step_size);
+        mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
         return shift;
     };
 
@@ -385,8 +384,9 @@ int main(int argc, char* argv[]) {
     float sidePlate_moveTime = curr_time;
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
     float tile_radial_vel = -0.2; // max speed is cm.s-1
-    std::function<ChVector<float>(ChVector<>&, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime, &step_size](ChVector<>& pos, float gamma){ 
-        ChVector<float> delta(0.f,0.f, 0.f);
+    std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
+    [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int imesh, unsigned int istep, float gamma){ 
+        ChVector<> delta(0.f, 0.f, 0.f);
         float x = pos.x();
         float y = pos.y();
         float z = pos.z();
@@ -394,8 +394,9 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = gamma * step_size * tile_radial_vel * cstheta;
-        float dy = gamma * step_size * tile_radial_vel * sntheta;
+        float dx = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * cstheta;
+        float dy = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * sntheta;
+        mesh_ticks(istep+1, imesh) = sqrt(dx*dx+dy*dy);
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -406,9 +407,9 @@ int main(int argc, char* argv[]) {
     w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
     for (unsigned int i=0; i < nmeshes; i++){
-        meshForces.push_back(ChVector<float>(0.,0.,0.));
-        meshTorques.push_back(ChVector<float>(0.,0.,0.));
-        meshPositions.push_back(ChVector<float>(0.,0.,0.));
+        meshForces.push_back(ChVector<>(0.,0.,0.));
+        meshTorques.push_back(ChVector<>(0.,0.,0.));
+        meshPositions.push_back(ChVector<>(0.,0.,0.));
     }
 
     gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
@@ -417,7 +418,7 @@ int main(int argc, char* argv[]) {
     float sigma3 = 50000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
-
+    unsigned int step0 = step;
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
@@ -439,8 +440,8 @@ int main(int argc, char* argv[]) {
             if (i>0 && i<nmeshes-1){ // tile
                 float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
-                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / abs(tile_press_diff)) );
-                    gpu_sys.ApplyMeshMotion(i, shift+meshPositions[i], q0, v0, w0);
+                    shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff / abs(tile_press_diff)) );
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
                 total_radial_press += meshForces[i].x(); // r-component
             }
@@ -448,7 +449,7 @@ int main(int argc, char* argv[]) {
             if (i==nmeshes-1){
                 float top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
-                    shift.Set(topPlate_posFunc(top_press_diff/abs(top_press_diff)));
+                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
                     gpu_sys.ApplyMeshMotion(i, shift+meshPositions[i], q0, v0, w0);
                 }
             }
@@ -456,7 +457,7 @@ int main(int argc, char* argv[]) {
 
         total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
         float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
-        solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
+        solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(cell_new_rad*100,2));
         std::cout << " SR = " << solid_ratio << " ";
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
