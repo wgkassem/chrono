@@ -380,9 +380,6 @@ int main(int argc, char* argv[]) {
         std::cout << "\nistep = " << istep;
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
-        std::cout << "\nistep = " << istep;
-        std::cout << "\nold, new shift = " << mesh_ticks(istep,mesh_ticks.cols()-1);
-        std::cout << ", " << mesh_ticks(istep+1, mesh_ticks.cols()-1) << "\n";
         return shift;
     };
 
@@ -412,10 +409,13 @@ int main(int argc, char* argv[]) {
     v0.Set(0,0,0);
     w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
+    ChVector tmp1, tmp2, tmp3;
     for (unsigned int i=0; i < nmeshes; i++){
-        meshForces.push_back(ChVector<>(0.,0.,0.));
-        meshTorques.push_back(ChVector<>(0.,0.,0.));
-        meshPositions.push_back(ChVector<>(0.,0.,0.));
+        gpu_sys.CollectMeshContactForces(i,tmp1,tmp2);
+        gpu_sys.GetMeshPosition(i,tmp3,0);
+        meshForces.push_back(tmp1);
+        meshTorques.push_back(tmp2);
+        meshPositions.push_back(tmp3);
     }
 
     float top_press_diff, tile_press_diff;
@@ -452,9 +452,7 @@ int main(int argc, char* argv[]) {
 
             if (i==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
-                std::cout << "\n\nstep-step0" << step-step0 << "\n\n";
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
-                    std::cout << "\n\nstep-step0" << step-step0 << "\n\n";
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
