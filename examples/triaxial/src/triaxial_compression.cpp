@@ -185,13 +185,13 @@ int main(int argc, char* argv[]) {
     //mesh_masses.push_back(mixer_mass);
 
     // add bottom
-    ChVector<float> topWallPos(0.0f, 0.0f, -0.5 * scaling.z);
-    ChVector<float> topWallNrm(0.0f, 0.0f, 1.0f);
-    size_t bottomWall = gpu_sys.CreateBCPlane(topWallPos, topWallNrm, true);
+    //ChVector<float> topWallPos(0.0f, 0.0f, -0.5 * scaling.z);
+    //ChVector<float> topWallNrm(0.0f, 0.0f, 1.0f);
+    //size_t bottomWall = gpu_sys.CreateBCPlane(topWallPos, topWallNrm, true);
     
     mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
     mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
-    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f * scaling.z - 5)); // push translation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5 * scaling.z)); // push translation
     mesh_masses.push_back(mixer_mass); // push mass
 
     // add sides
