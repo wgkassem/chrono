@@ -397,8 +397,8 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = (mesh_ticks(istep, 2*imesh) + gamma * step_size * tile_radial_vel) * cstheta;
-        float dy = (mesh_ticks(istep, 2*imesh+1) + gamma * step_size * tile_radial_vel) * sntheta;
+        float dx = mesh_ticks(istep, 2*imesh) + gamma * step_size * tile_radial_vel * cstheta;
+        float dy = mesh_ticks(istep, 2*imesh+1) + gamma * step_size * tile_radial_vel * sntheta;
         mesh_ticks(istep+1, 2*imesh) = dx;
         mesh_ticks(istep+1, 2*imesh+1) = dy;
         if (imesh == 1) {std::cout << "\n\nshift old, new, gamma = " << mesh_ticks(istep,imesh) << ", " << mesh_ticks(istep+1,imesh) << ", " << gamma << "\n\n";}
