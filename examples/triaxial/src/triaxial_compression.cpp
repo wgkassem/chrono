@@ -364,12 +364,12 @@ int main(int argc, char* argv[]) {
     float step_size = params.step_size;
     float topPlate_moveTime = curr_time;
     
-    Eigen::MatrixXf mesh_ticks(total_frames - step, nmeshes);
+    Eigen::MatrixXf mesh_ticks(total_frames - step, 2*nmeshes);
     std::ofstream fticks(out_dir+"/fticks.csv", std::ios::out); 
     
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
-    mesh_ticks(0,nmeshes-1) = topPlate_offset.z();
-    for (unsigned int i = 1; i < nmeshes-1; i++){mesh_ticks(0,i)=0.;}
+    mesh_ticks(0,2*nmeshes-1) = topPlate_offset.z();
+    for (unsigned int i = 0; i < 2*nmeshes-2; i++){mesh_ticks(0,i)=0.;}
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
@@ -397,9 +397,10 @@ int main(int argc, char* argv[]) {
         if (r==0) { return delta; }
         float cstheta = x / r;
         float sntheta = y / r;
-        float dx = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * cstheta;
-        float dy = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * sntheta;
-        mesh_ticks(istep+1, imesh) = sqrt(dx*dx+dy*dy);
+        float dx = (mesh_ticks(istep, 2*imesh) + gamma * step_size * tile_radial_vel) * cstheta;
+        float dy = (mesh_ticks(istep, 2*imesh+1) + gamma * step_size * tile_radial_vel) * sntheta;
+        mesh_ticks(istep+1, 2*imesh) = dx;
+        mesh_ticks(istep+1, 2*imesh+1) = dy;
         if (imesh == 1) {std::cout << "\n\nshift old, new, gamma = " << mesh_ticks(istep,imesh) << ", " << mesh_ticks(istep+1,imesh) << ", " << gamma << "\n\n";}
         delta.Set(dx,dy,0.f);
         return delta;
