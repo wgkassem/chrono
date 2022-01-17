@@ -446,6 +446,7 @@ int main(int argc, char* argv[]) {
                 }
                 else{
                     shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, 0));
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
                 total_radial_press += meshForces[i].x(); // r-component
             }
@@ -458,6 +459,7 @@ int main(int argc, char* argv[]) {
                 }
                 else{
                     shift.Set( topPlate_posFunc(step-step0, 0));
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
             }
         }
