@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.05f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.03f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float,float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t, float gamma){
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -.1f;  // cm.s-1
+    float sidePlate_radial_vel = -.02f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
     gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
     string tmp;
-    float sigma3 = 1000.f; // Pa, consolidation stress
+    float sigma3 = 50000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
