@@ -400,7 +400,7 @@ int main(int argc, char* argv[]) {
         float dx = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * cstheta;
         float dy = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * sntheta;
         mesh_ticks(istep+1, imesh) = sqrt(dx*dx+dy*dy);
-        if (imesh == 1) {std::cout << "\n\nshift old, new = " << mesh_ticks(istep,imesh) << ", " << mesh_ticks(istep+1,imesh) << "\n\n";}
+        if (imesh == 1) {std::cout << "\n\nshift old, new, gamma = " << mesh_ticks(istep,imesh) << ", " << mesh_ticks(istep+1,imesh) << ", " << gamma << "\n\n";}
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -435,11 +435,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int i = 1; i < nmeshes; i++){
             gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
             gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
-//            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
-            float tmpx = meshForces[i].x(); 
-            float tmpy = meshForces[i].y();
-            float tmpd = sqrt(pow(tmpx,2) + pow(tmpy,2));
-            meshForces[i].Set(tmpd, atan2(tmpy, tmpx), meshForces[i].z() ); // change to cylindrical
+            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
             meshForces[i] *= F_CGS_TO_SI;
  
             if (i>0 && i<nmeshes-1){ // tile
