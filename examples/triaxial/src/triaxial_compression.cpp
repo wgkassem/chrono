@@ -413,9 +413,6 @@ int main(int argc, char* argv[]) {
         meshPositions.push_back(ChVector<>(0.,0.,0.));
     }
 
-    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
-    gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
-    string tmp;
     float sigma3 = 50000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
