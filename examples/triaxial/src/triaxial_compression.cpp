@@ -379,7 +379,9 @@ int main(int argc, char* argv[]) {
         ChVector<> shift(0, 0, 0);
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
-        std::cout << "shift = " << mesh_ticks(istep+1, mesh_ticks.cols()-1) << "\n";
+        std::cout << "\nistep = " << istep;
+        std::cout << "\nold, new shift = " << mesh_ticks(istep,mesh_ticks.cols()-1);
+        std::cout << ", " << mesh_ticks(istep+1, mesh_ticks.cols()-1) << "\n";
         return shift;
     };
 
