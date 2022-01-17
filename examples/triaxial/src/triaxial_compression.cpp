@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
                 float top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
-                    gpu_sys.ApplyMeshMotion(i, shift+meshPositions[i], q0, v0, w0);
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
             }
         }
