@@ -363,26 +363,26 @@ int main(int argc, char* argv[]) {
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + 2.f * params.sphere_radius); // initial top plate position
+    ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
     std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
     float topPlate_moveTime = curr_time;
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.25f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
-    std::function<ChVector<float>(float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
+    std::function<ChVector<float>(float,float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t, float gamma){
         ChVector<> pos(topPlate_offset);
-        pos.Set(topPlate_offset.x() + topPlate_vel.x() * (t - topPlate_moveTime),  
-                topPlate_offset.y() + topPlate_vel.y() * (t - topPlate_moveTime),  
-                topPlate_offset.z() + topPlate_vel.z() * (t - topPlate_moveTime) );
+        pos.Set(topPlate_offset.x() + gamma * topPlate_vel.x() * (t - topPlate_moveTime),  
+                topPlate_offset.y() + gamma * topPlate_vel.y() * (t - topPlate_moveTime),  
+                topPlate_offset.z() + gamma * topPlate_vel.z() * (t - topPlate_moveTime) );
         
         return pos;
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -2.f;  // cm.s-1
+    float sidePlate_radial_vel = -.5f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
     ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
     ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_offset, q0, v0, w0);
     gpu_sys.WriteMeshes(out_dir+"/compress_phase.vtk");
     string tmp;
-    float sigma3 = 500.f; // Pa, consolidation stress
+    float sigma3 = 200.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
@@ -441,7 +441,9 @@ int main(int argc, char* argv[]) {
         
         // Collect mesh positions and forces
         float total_radial_press = 0.f;
-        for (unsigned int i = 0; i < nmeshes; i++){
+        float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
+        
+        for (unsigned int i = 1; i < nmeshes; i++){
             gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
             gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
 //            meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
@@ -454,41 +456,32 @@ int main(int argc, char* argv[]) {
             if (i>0 && i<nmeshes-1){ // tile
                 float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
-                    
-                    //shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / sigma3, curr_time) );
-                    //gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
-                    //std::cout << "i, press = " << i << ", " << meshForces[i].x() / tile_base / tile_height * 100. << "\n";   
-                    //gpu_sys.CollectMeshContactForces(i, meshForces[i], meshTorques[i]);  // get forces
-                    //gpu_sys.GetMeshPosition(i, meshPositions[i], 0);
-                    //meshForces[i].Set(cart2cyl_vector(meshPositions[i], meshForces[i])); // change to cylindrical
-                    //meshForces[i] *= F_CGS_TO_SI;
-                
+                    shift.Set( tile_advancePosDr(meshPositions[i], tile_press_diff / abs(tile_press_diff), curr_time) );
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
-                //std::cout << "moving mesh i = " << i << "\n";
                 total_radial_press += meshForces[i].x(); // r-component
             }
+
             if (i==nmeshes-1){
-                shift.Set(topPlate_posFunc(curr_time));
-                gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                float top_press_diff = sigma3 - meshForces[i].z() / M_PI / pow(cell_new_rad,2);
+                if (abs(top_press_diff) / sigma3 * 100. > 3.){
+                    shift.Set(topPlate_posFunc(curr_time, top_press_diff/abs(top_press_diff)));
+                    gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                }
             }
         }
 
-        float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
         total_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * M_PI * 2.f * cell_new_rad; // N.m-2=Pa
         float top_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(cell_new_rad,2);
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(meshPositions[1].x(),2) + pow(meshPositions[1].y(),2));
         std::cout << " SR = " << solid_ratio << " ";
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
+        nc = gpu_sys.GetNumContacts();
 
         std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
         std::cout << "top press: " << top_axial_press / 1000.f << " kPa, ";
-        nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
-
-        //std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
-        //std::cout << "\n";
-
         std::cout << "\nradial pressure = " << total_radial_press / 1000.f << "kPa\n";
 
         if (step % out_steps == 0){
