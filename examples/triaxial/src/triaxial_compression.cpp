@@ -444,6 +444,9 @@ int main(int argc, char* argv[]) {
                     shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff / abs(tile_press_diff)) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
+                else{
+                    shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, 0));
+                }
                 total_radial_press += meshForces[i].x(); // r-component
             }
 
@@ -452,6 +455,9 @@ int main(int argc, char* argv[]) {
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
+                }
+                else{
+                    shift.Set( topPlate_posFunc(step-step0, 0));
                 }
             }
         }
