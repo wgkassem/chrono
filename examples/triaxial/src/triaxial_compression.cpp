@@ -365,10 +365,11 @@ int main(int argc, char* argv[]) {
     float topPlate_moveTime = curr_time;
     
     Eigen::MatrixXf mesh_ticks(total_frames - step, nmeshes);
+    std::ofstream fticks(out_dir+"/fticks.csv", std::ios::out); 
+    
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
     mesh_ticks(0,nmeshes-1) = topPlate_offset.z();
     for (unsigned int i = 1; i < nmeshes-1; i++){mesh_ticks(0,i)=0.;}
-    std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
@@ -399,6 +400,7 @@ int main(int argc, char* argv[]) {
         float dx = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * cstheta;
         float dy = (mesh_ticks(istep, imesh) + gamma * step_size * tile_radial_vel) * sntheta;
         mesh_ticks(istep+1, imesh) = sqrt(dx*dx+dy*dy);
+        if (imesh == 1) {std::cout << "\n\nshift old, new = " << mesh_ticks[istep,imesh] << ", " << mesh_ticks(istep+1,imesh) << "\n\n";}
         delta.Set(dx,dy,0.f);
         return delta;
     };
@@ -422,10 +424,10 @@ int main(int argc, char* argv[]) {
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
     unsigned int step0 = step;
+    char tickout[100];
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-        
         // Collect mesh positions and forces
         float total_radial_press = 0.f;
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
