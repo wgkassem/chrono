@@ -206,8 +206,8 @@ int main(int argc, char* argv[]) {
     unsigned int nstacks = 20;
     float dtheta = 360. / nrots; //degrees
     float dz = cell_hgt / nstacks;
-    float tile_base = M_PI * (cell_diam * 1.00);// / (float) nrots;
-    float tile_height = cell_hgt;// / (float) nstacks; // should be a multiple of cell_hgt
+    float tile_base = M_PI * (cell_diam * 1.00) / (float) nrots;// / (float) nrots;
+    float tile_height = cell_hgt / (float) nstacks;// / (float) nstacks; // should be a multiple of cell_hgt
     unsigned int ntiles = nrots * nstacks;
     ChMatrix33<float> tile_scale(ChVector<float>(1., tile_base, tile_height));
 
@@ -230,7 +230,6 @@ int main(int argc, char* argv[]) {
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), params.box_Z/2.f - 5.)); // push translation top top of box
     mesh_masses.push_back(mixer_mass); // push mass
 
-    std::cout << mesh_filenames.size() << ", "<< mesh_rotscales.size() << ", "<< mesh_translations.size() << ", "<< mesh_masses.size() << "\n";
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses); 
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
