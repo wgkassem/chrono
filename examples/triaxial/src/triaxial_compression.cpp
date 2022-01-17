@@ -382,28 +382,9 @@ int main(int argc, char* argv[]) {
     };
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_radial_vel = -.02f;  // cm.s-1
     float sidePlate_moveTime = curr_time;
-    ChVector<> v0(0.f, 0.f, 0.f);  // place-holder
-    ChVector<> w0(0.f, 0.f, 0.f);  // place-holder
-
-    std::function<ChVector<float>(float, ChVector<>&)> sidePlate_advancePos = [&sidePlate_radial_vel, &sidePlate_moveTime](float t, ChVector<>& pos){ 
-        ChVector<float> delta(0.f,0.f, 0.f);
-        float x = pos.x();
-        float y = pos.y();
-        float z = pos.z();
-        float r = sqrt(x*x + y*y);
-        if (r==0) { return delta; }
-        float cstheta = x / r;
-        float sntheta = y / r;
-        float dx = (t - sidePlate_moveTime) * sidePlate_radial_vel * cstheta;
-        float dy = (t - sidePlate_moveTime) * sidePlate_radial_vel * sntheta;
-        delta.Set(dx,dy,0.f);
-        return delta;
-    };
-
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
-    float tile_radial_vel = -2.; // max speed is cm.s-1
+    float tile_radial_vel = -0.02; // max speed is cm.s-1
     std::function<ChVector<float>(ChVector<>&, float, float)> tile_advancePosDr = [&tile_radial_vel, &sidePlate_moveTime](ChVector<>& pos, float gamma, float t){ 
         ChVector<float> delta(0.f,0.f, 0.f);
         float x = pos.x();
@@ -420,7 +401,9 @@ int main(int argc, char* argv[]) {
     };
      
     // create vectors to hold useful information on meshes
-    ChVector<> myv, shift;
+    ChVector<> myv, shift, v0, w0;
+    v0.Set(0,0,0);
+    w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
     for (unsigned int i=0; i < nmeshes; i++){
         meshForces.push_back(ChVector<float>(0.,0.,0.));
