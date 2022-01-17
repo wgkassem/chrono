@@ -366,6 +366,7 @@ int main(int argc, char* argv[]) {
     
     Eigen::MatrixXf mesh_ticks(total_frames - step, nmeshes);
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
+    mesh_ticks(0,nmeshes-1) = topPlate_offset.z();
     std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
     ChQuaternion<float> q0(1,0,0,0);
     
@@ -374,8 +375,8 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
-        ChVector<> shift(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1));
-        shift.Set(0, 0, shift.z() + gamma * topPlate_vel.z() * step_size);
+        ChVector<> shift(0, 0, 0);
+        shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
         return shift;
     };
@@ -385,7 +386,7 @@ int main(int argc, char* argv[]) {
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
     float tile_radial_vel = -0.2; // max speed is cm.s-1
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
-    [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int imesh, unsigned int istep, float gamma){ 
+    [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
         float x = pos.x();
         float y = pos.y();
