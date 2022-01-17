@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-        
+        std::cout << "\n\nstep-step0 = " << step-step0 << "\n\n"; 
         // Collect mesh positions and forces
         float total_radial_press = 0.f;
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
