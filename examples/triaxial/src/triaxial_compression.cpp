@@ -409,7 +409,7 @@ int main(int argc, char* argv[]) {
     v0.Set(0,0,0);
     w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
-    ChVector tmp1, tmp2, tmp3;
+    ChVector<> tmp1, tmp2, tmp3;
     for (unsigned int i=0; i < nmeshes; i++){
         gpu_sys.CollectMeshContactForces(i,tmp1,tmp2);
         gpu_sys.GetMeshPosition(i,tmp3,0);
