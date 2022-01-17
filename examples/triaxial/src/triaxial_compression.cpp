@@ -372,12 +372,11 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.2f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.4f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
         ChVector<> shift(0, 0, 0);
-        std::cout << "\nistep = " << istep;
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
         return shift;
