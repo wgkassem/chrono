@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
     }
 
     float top_press_diff, tile_press_diff;
-    float sigma3 = 50000.f; // Pa, consolidation stress
+    float sigma3 = 2000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
     unsigned int step0 = step;
