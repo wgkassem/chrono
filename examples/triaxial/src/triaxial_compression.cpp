@@ -377,6 +377,7 @@ int main(int argc, char* argv[]) {
 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
         ChVector<> shift(0, 0, 0);
+        std::cout << "\nistep = " << istep;
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
         std::cout << "\nistep = " << istep;
@@ -417,6 +418,7 @@ int main(int argc, char* argv[]) {
         meshPositions.push_back(ChVector<>(0.,0.,0.));
     }
 
+    float top_press_diff, tile_press_diff;
     float sigma3 = 50000.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
@@ -424,7 +426,7 @@ int main(int argc, char* argv[]) {
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
-        std::cout << "\n\nstep-step0 = " << step-step0 << "\n\n"; 
+        
         // Collect mesh positions and forces
         float total_radial_press = 0.f;
         float cell_new_rad = 0.01 * sqrt(pow(meshPositions[1].x(),2)+pow(meshPositions[1].y(),2));
@@ -440,7 +442,7 @@ int main(int argc, char* argv[]) {
             meshForces[i] *= F_CGS_TO_SI;
  
             if (i>0 && i<nmeshes-1){ // tile
-                float tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
+                tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*100;
                 if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
                     shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff / abs(tile_press_diff)) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
@@ -449,8 +451,10 @@ int main(int argc, char* argv[]) {
             }
 
             if (i==nmeshes-1){
-                float top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
+                top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
+                std::cout << "\n\nstep-step0" << step-step0 << "\n\n";
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
+                    std::cout << "\n\nstep-step0" << step-step0 << "\n\n";
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
