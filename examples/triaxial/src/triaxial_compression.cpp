@@ -367,6 +367,7 @@ int main(int argc, char* argv[]) {
     Eigen::MatrixXf mesh_ticks(total_frames - step, nmeshes);
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
     mesh_ticks(0,nmeshes-1) = topPlate_offset.z();
+    for (unsigned int i = 1; i < nmeshes-1; i++){mesh_ticks(0,i)=0.;}
     std::cout << "\n top plate offset = " << topPlate_offset.z() << "\n";
     ChQuaternion<float> q0(1,0,0,0);
     
@@ -378,6 +379,7 @@ int main(int argc, char* argv[]) {
         ChVector<> shift(0, 0, 0);
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
         mesh_ticks(istep+1, mesh_ticks.cols()-1) = shift.z();
+        std::cout << "shift = " << mesh_ticks(istep+1, mesh_ticks.cols()-1) << "\n";
         return shift;
     };
 
