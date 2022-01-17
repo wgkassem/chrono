@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.25f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<float>(float,float)> topPlate_posFunc = [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t, float gamma){
@@ -463,7 +463,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (i==nmeshes-1){
-                float top_press_diff = sigma3 - meshForces[i].z() / M_PI / pow(cell_new_rad,2);
+                float top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
                 if (abs(top_press_diff) / sigma3 * 100. > 3.){
                     shift.Set(topPlate_posFunc(curr_time, top_press_diff/abs(top_press_diff)));
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
