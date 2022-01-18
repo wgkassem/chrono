@@ -425,6 +425,7 @@ int main(int argc, char* argv[]) {
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
     unsigned int step0 = step;
     char tickout[100];
+    fticks << "step, curr_time, top_ticks, axial_ticks top_press, axial_press";
     // Main loop
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
@@ -440,8 +441,8 @@ int main(int argc, char* argv[]) {
  
             if (i>0 && i<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*10000;
-                if ( abs(tile_press_diff) / sigma3 * 100. > 20. ){        
-                    shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff / abs(tile_press_diff)) );
+                if ( abs(tile_press_diff) / sigma3 * 100. > 10. ){        
+                    shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff/sigma3 ) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
                 else{
@@ -453,8 +454,8 @@ int main(int argc, char* argv[]) {
 
             if (i==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[i].z() / M_PI / pow(cell_new_rad,2));
-                if (abs(top_press_diff) / sigma3 * 100. > 3.){
-                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/abs(top_press_diff)));
+                if (abs(top_press_diff) / sigma3 * 100. > 10.){
+                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
                 else{
@@ -477,6 +478,12 @@ int main(int argc, char* argv[]) {
         std::cout << ", numContacts: " << nc;
         std::cout << "\nradial pressure = " << total_radial_press / 1000.f << "kPa";
         std::cout << " radius = " << cell_new_rad*100 << " cm\n";
+
+        sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f", step-step0, curr_time, 
+        mesh_ticks(step-step0,2*nmeshes-1), mesh_ticks(step-step0,2),
+        top_axial_press, total_radial_press);
+        fticks << tickout;
+        fticks.flush();
 
         if (step % out_steps == 0){
 
