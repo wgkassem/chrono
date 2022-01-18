@@ -440,7 +440,7 @@ int main(int argc, char* argv[]) {
  
             if (i>0 && i<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*10000;
-                if ( abs(tile_press_diff) / sigma3 * 100. > 3. ){        
+                if ( abs(tile_press_diff) / sigma3 * 100. > 20. ){        
                     shift.Set( tile_advancePosDr(meshPositions[i], step-step0, i, tile_press_diff / abs(tile_press_diff)) );
                     gpu_sys.ApplyMeshMotion(i, shift, q0, v0, w0);
                 }
