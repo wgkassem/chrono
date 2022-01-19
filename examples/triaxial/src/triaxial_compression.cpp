@@ -434,11 +434,14 @@ int main(int argc, char* argv[]) {
     /*
      * Main loop start
      */
+    int n;
     printf("Main loop starting:\n");
-    printf("\n%-10s | %-10s | %-10s | %-11s | %-10s | %-10s | %-10s | %-30s", "step", "curr_time", "#contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
-    printf("\n%-10s | %-10s | %-10s | %-11s | %-10s | %-10s | %-10s | %-30s", "    ", "   (s)   ", "         ", "           ","(kPA)  ", "(kPa)  ", "(cm) ", "(cm)");
+    n = printf("\n%-10s | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
+    "step", "curr_time", "#contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
+    printf("\n%-10d | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
+    total_frames, "   (s)   ", "    (#)    ", "   (1)   ","  (kPA)  ", "  (kPa)  ", "  (cm) ", "  (cm)");
     string tmp = "\n";
-    for (unsigned int i=0; i<150; i++){tmp += "-";}
+    for (unsigned int i=0; i<n; i++){tmp += "-";}
     printf(tmp.c_str()); 
     while (curr_time < params.time_end) {
         // Collect mesh positions and forces
