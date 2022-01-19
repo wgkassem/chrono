@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
+    ChVector<> topPlate_vel(0.f, 0.f, -1f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
@@ -386,7 +386,7 @@ int main(int argc, char* argv[]) {
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
     float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
-    float tile_radial_vel = -0.5; // max speed is cm.s-1
+    float tile_radial_vel = -1.; // max speed is cm.s-1
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -455,7 +455,7 @@ int main(int argc, char* argv[]) {
         ntopmeshes = 0;
         float tmp_rad = 0.0;
         
-        for (unsigned int imesh=1; imesh < nmeshes - 1; imesh++){
+        for (unsigned int imesh=0; imesh < nmeshes; imesh++){
             gpu_sys.GetMeshPosition(imesh, meshPositions[imesh], 0);
             tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
             avg_cell_new_rad += tmp_rad;
@@ -481,12 +481,10 @@ int main(int argc, char* argv[]) {
                 if (abs(top_press_diff) / sigma3 * 100. > 10.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                    std::cout << "Hello it's " << top_press_diff << "\n";
                 }
                 else{
                     shift.Set( topPlate_posFunc(step-step0, 0));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                    std::cout << "Actually :( " << top_press_diff << "\n"; 
                 }
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
