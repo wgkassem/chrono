@@ -472,7 +472,7 @@ int main(int argc, char* argv[]) {
         unsigned int dstep = step - step0;
         
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
-        for (unsigned int imesh = 1; imesh < nmeshes - 1; imesh++){
+        for (unsigned int imesh = 1; imesh < nmeshes; imesh++){
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
             meshForces[imesh] *= F_CGS_TO_SI;
              
@@ -486,6 +486,7 @@ int main(int argc, char* argv[]) {
                 else{
                     shift.Set( topPlate_posFunc(step-step0, 0));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                    std::cout << "Actually :( " << top_press_diff << "\n" 
                 }
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
