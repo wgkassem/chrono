@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
      * Main loop start
      */ 
     while (curr_time < params.time_end) {
-        printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
+        printf("rendering frame: %u of %u, curr_time: %.4f, \n", step + 1, total_frames, curr_time);
         // Collect mesh positions and forces
         average_radial_press = 0.f;
         avg_cell_new_rad=0.0;
@@ -513,11 +513,11 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(iteration_step);
         
         if (step % out_steps == 0){
-            std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
-            std::cout << "top press: " << average_axial_press / 1000.f << " kPa, ";
-            std::cout << ", numContacts: " << nc;
-            std::cout << "\nradial pressure = " << average_radial_press / 1000.f << "kPa";
-            std::cout << " min, max, avg. radius = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n";
+            std::cout << "\n   top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
+            std::cout << "   pzz: " << average_axial_press / 1000.f << " kPa, ";
+            std::cout << "   numContacts: " << nc << ", ";
+            std::cout << "   prr = " << average_radial_press / 1000.f << "kPa, ";
+            std::cout << "   radius (min,max,avg) = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n";
 
 
             // filenames for mesh, particles, force-per-mesh
