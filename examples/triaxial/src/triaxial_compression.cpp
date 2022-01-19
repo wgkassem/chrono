@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
     
     float max_tick, avg_tick, min_tick;
-    char tickout[100];
+    char tickout[1000];
     fticks << "step, curr_time, top_ticks, axial_ticks top_press, axial_press";
     
     float avg_cell_new_rad, min_cell_new_rad, max_cell_new_rad, top_cell_new_rad;
