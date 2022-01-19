@@ -513,11 +513,11 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(iteration_step);
         
         if (step % out_steps == 0){
-            std::cout << "\n   top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
-            std::cout << "   pzz: " << average_axial_press / 1000.f << " kPa, ";
-            std::cout << "   numContacts: " << nc << ", ";
-            std::cout << "   prr = " << average_radial_press / 1000.f << "kPa, ";
-            std::cout << "   radius (min,max,avg) = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n";
+            std::cout << "\n\n   top pos_z: " << meshPositions[nmeshes-1].z() << " cm";
+            std::cout << "\n   pzz: " << average_axial_press / 1000.f << " kPa";
+            std::cout << "\n   numContacts: " << nc << ", ";
+            std::cout << "\n   prr = " << average_radial_press / 1000.f << "kPa";
+            std::cout << "\n   radius (min,max,avg) = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n\n";
 
 
             // filenames for mesh, particles, force-per-mesh
