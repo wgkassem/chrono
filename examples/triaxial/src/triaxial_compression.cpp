@@ -528,40 +528,40 @@ int main(int argc, char* argv[]) {
             gpu_sys.WriteMeshes(filenamemesh);
 
             // force-per-mesh files
-            std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
+            // std::ofstream meshfrcFile(filenameforce, std::ios::out);
+            // meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
 
-            // Pull individual mesh forces
-            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-                ChVector<> imeshforce;  // forces for each mesh
-                ChVector<> imeshtorque; //torques for each mesh
-                ChVector<> imeshforcecyl;
-                ChVector<> imeshposition;
+            // // Pull individual mesh forces
+            // for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
+            //     ChVector<> imeshforce;  // forces for each mesh
+            //     ChVector<> imeshtorque; //torques for each mesh
+            //     ChVector<> imeshforcecyl;
+            //     ChVector<> imeshposition;
 
-                // get the force on the ith-mesh
-                gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
-                imeshforce *= F_CGS_TO_SI;                
+            //     // get the force on the ith-mesh
+            //     gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
+            //     gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
+            //     imeshforce *= F_CGS_TO_SI;                
                 
-                // change to cylinderical coordinates
-                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
-                double thetaF = acos( imeshforce.x() / normF);
-                if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
-                if (normF < 0.0000001) {thetaF = 0.f;}
-                double cst = cos(imeshposition.y() - thetaF);
-                double snt = sin(imeshposition.y() - thetaF);
-                imeshforcecyl.Set( normF * cst, 
-                                    normF * snt,
-                                    imeshforce.z() );
+            //     // change to cylinderical coordinates
+            //     double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
+            //     double thetaF = acos( imeshforce.x() / normF);
+            //     if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+            //     if (normF < 0.0000001) {thetaF = 0.f;}
+            //     double cst = cos(imeshposition.y() - thetaF);
+            //     double snt = sin(imeshposition.y() - thetaF);
+            //     imeshforcecyl.Set( normF * cst, 
+            //                         normF * snt,
+            //                         imeshforce.z() );
 
-                // output to mesh file(s)
-                char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
-                    imeshposition.x(), imeshposition.y(), imeshposition.z(),
-                    imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                    imeshforcecyl.x(), imeshforcecyl.y());
-                meshfrcFile << meshfforces; 
-            }
+            //     // output to mesh file(s)
+            //     char meshfforces[100];
+            //     sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+            //         imeshposition.x(), imeshposition.y(), imeshposition.z(),
+            //         imeshforce.x(), imeshforce.y(), imeshforce.z(),
+            //         imeshforcecyl.x(), imeshforcecyl.y());
+            //     meshfrcFile << meshfforces; 
+            // }
 
             printf("time = %.4f\n", curr_time);
             fticks.flush();
