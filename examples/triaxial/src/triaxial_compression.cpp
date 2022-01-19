@@ -504,12 +504,12 @@ int main(int argc, char* argv[]) {
                 if (min_tick > tmp_tick){min_tick = tmp_tick;}
                 avg_tick += tmp_tick;
             }
-            axial_radial_ratio = abs(average_axial_press / average_radial_press);
         }
         avg_tick /= (nmeshes - 2);
         average_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * avg_cell_new_rad * 0.01; // N.m-2=Pa
         average_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(top_cell_new_rad,2) * 10000.;
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
+        axial_radial_ratio = abs(average_axial_press / average_radial_press);
         // write position
         nc = gpu_sys.GetNumContacts();
 
