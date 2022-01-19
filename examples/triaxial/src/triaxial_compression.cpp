@@ -509,7 +509,8 @@ int main(int argc, char* argv[]) {
         // write position
         nc = gpu_sys.GetNumContacts();
 
-        sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", step-step0, curr_time,
+        sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", 
+        step-step0, curr_time,
         meshPositions[nmeshes-1].z(), min_cell_new_rad, max_cell_new_rad, top_cell_new_rad, avg_cell_new_rad, 
         min_tick, max_tick, avg_tick,
         average_axial_press, average_radial_press);
@@ -519,7 +520,7 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10.d|%-10.6f|%-10.d|%-10.6e|%-10.6e|%-10.8f|%-10.8f, %-10.8f, -10.8f", 
+            printf("\n%-10d|%-10.6f|%-10d|%-10.6e|%-10.6e|%-10.8f|%-10.8f, %-10.8f, %-10.8f", 
             step, curr_time, nc, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
