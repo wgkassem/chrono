@@ -459,9 +459,9 @@ int main(int argc, char* argv[]) {
             gpu_sys.GetMeshPosition(imesh, meshPositions[imesh], 0);
             tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
             avg_cell_new_rad += tmp_rad;
-            if (tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
-            if (tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;}
-            if (meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 2.f * params.sphere_radius ){top_cell_new_rad += tmp_rad; ntopmeshes+=1;}
+            if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
+            if (imesh>0 and imesh<nmeshes-1 and tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;}
+            if (imesh>0 and imesh<nmeshes-1 and meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 2.f * params.sphere_radius ){top_cell_new_rad += tmp_rad; ntopmeshes+=1;}
         }
         avg_cell_new_rad /= (nmeshes - 2);
         top_cell_new_rad /= ntopmeshes;
