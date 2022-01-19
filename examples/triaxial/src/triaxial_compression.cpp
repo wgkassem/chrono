@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
         meshPositions.push_back(tmp3);
     }
 
-    float average_radial_press, top_press_diff, tile_press_diff, contacted;
+    float average_radial_press, top_press_diff, tile_press_diff, topmove;
     float sigma3 = 500.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     unsigned int step0 = step;
@@ -460,20 +460,31 @@ int main(int argc, char* argv[]) {
         min_tick = 0.;
         max_tick = 0.;
         avg_tick = 0.;
-
-        for (unsigned int imesh = 1; imesh < nmeshes; imesh++){
+        unsigned int dstep = step - step0;
+        
+        for (unsigned int imesh = nmeshes-1; imesh > 0; imesh--){
             gpu_sys.CollectMeshContactForces(imesh, meshForces[imesh], meshTorques[imesh]);  // get forces
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
             meshForces[imesh] *= F_CGS_TO_SI;
- 
+            
+            if (imesh==nmeshes-1){
+                top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2));
+                if (abs(top_press_diff) / sigma3 * 100. > 10.){
+                    topmove = 1.;
+                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
+                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                }
+                else{
+                    topmove = 0;
+                    shift.Set( topPlate_posFunc(step-step0, 0));
+                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                }
+             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
-                unsigned int dstep = step - step0;
-                if (abs(meshForces[nmeshes-1].z()) < 0.01 ) { contacted = 0.;}
-                else{contacted = 1.;} 
 
                 if ( abs(tile_press_diff) / sigma3 * 100. > 10. ){        
-                    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * contacted) );
+                    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 }
                 else{
@@ -485,18 +496,6 @@ int main(int argc, char* argv[]) {
                 if (max_tick < tmp_tick){max_tick = tmp_tick;}
                 if (min_tick > tmp_tick){min_tick = tmp_tick;}
                 avg_tick += tmp_tick;
-            }
-
-            if (imesh==nmeshes-1){
-                top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2));
-                if (abs(top_press_diff) / sigma3 * 100. > 10.){
-                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                }
-                else{
-                    shift.Set( topPlate_posFunc(step-step0, 0));
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                }
             }
         }
         avg_tick /= (nmeshes - 2);
