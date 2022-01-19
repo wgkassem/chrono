@@ -573,8 +573,7 @@ int main(int argc, char* argv[]) {
             //         imeshforcecyl.x(), imeshforcecyl.y());
             //     meshfrcFile << meshfforces; 
             // }
-
-            fticks.flush();
+            if (step % 10*out_fps == 0){fticks.flush();}
         }
 
         step++;
