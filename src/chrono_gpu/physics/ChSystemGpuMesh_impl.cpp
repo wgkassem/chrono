@@ -123,7 +123,7 @@ void ChSystemGpuMesh_impl::WriteMeshes(
         return;
     }
 
-    printf("Writing meshes\n");
+    // printf("Writing meshes\n");
     std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
     std::ostringstream ostream;
     ostream << "# vtk DataFile Version 1.0\n";
