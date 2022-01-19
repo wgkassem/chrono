@@ -437,15 +437,17 @@ int main(int argc, char* argv[]) {
     int n;
     printf("Main loop starting:\n");
     n = printf("\n%-10s | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
-    "step", "curr_time", "#contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
-    printf("\n%-10d | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
-    total_frames, "   (s)   ", "    (#)    ", "   (1)   ","  (kPA)  ", "  (kPa)  ", "  (cm) ", "  (cm)");
+    "step", "curr_time", "contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
+    printf("\n(/%-7d) | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
+    total_frames, "   (s)   ", "    (#)   ", "   (1)   ","  (kPA)  ", "  (kPa)  ", "  (cm) ", "  (cm)");
     string tmp = "\n";
     for (unsigned int i=0; i<n; i++){tmp += "-";}
     printf(tmp.c_str()); 
     while (curr_time < params.time_end) {
         // Collect mesh positions and forces
         average_radial_press = 0.f;
+        average_axial_press = 0.f;
+        axial_radial_ratio = 0.f;
         avg_cell_new_rad=0.0;
         min_cell_new_rad=1000.;
         max_cell_new_rad=-1000.;
@@ -469,13 +471,13 @@ int main(int argc, char* argv[]) {
         avg_tick = 0.;
         unsigned int dstep = step - step0;
         
+        gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
         for (unsigned int imesh = nmeshes-1; imesh > 0; imesh--){
-            gpu_sys.CollectMeshContactForces(imesh, meshForces[imesh], meshTorques[imesh]);  // get forces
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
             meshForces[imesh] *= F_CGS_TO_SI;
              
             if (imesh==nmeshes-1){
-                top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2));
+                top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
                 if (abs(top_press_diff) / sigma3 * 100. > 10.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
