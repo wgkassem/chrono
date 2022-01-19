@@ -519,7 +519,7 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-10.6e | %-10.6e | %-10.8f | %-10.8f, %-10.8f, %-10.8f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f", 
             step, curr_time, nc, solid_ratio, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
@@ -571,7 +571,6 @@ int main(int argc, char* argv[]) {
             //     meshfrcFile << meshfforces; 
             // }
 
-            printf("time = %.4f\n", curr_time);
             fticks.flush();
         }
 
