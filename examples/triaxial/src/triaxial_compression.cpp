@@ -435,10 +435,10 @@ int main(int argc, char* argv[]) {
      * Main loop start
      */
     printf("Main loop starting:\n");
-    printf("\n%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-30s", "step", "curr_time", "#contacts", "av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
-    printf("\n%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-30s", "    ", "(s)", "    ", "(kPA)", "(kPa)", "(cm)", "(cm)");
-    string tmp = "";
-    for (unsigned int i=0; i<100; i++){tmp += "-";}
+    printf("\n%-10s | %-10s | %-10s | %-11s | %-10s | %-10s | %-10s | %-30s", "step", "curr_time", "#contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
+    printf("\n%-10s | %-10s | %-10s | %-11s | %-10s | %-10s | %-10s | %-30s", "    ", "   (s)   ", "         ", "           ","(kPA)  ", "(kPa)  ", "(cm) ", "(cm)");
+    string tmp = "\n";
+    for (unsigned int i=0; i<150; i++){tmp += "-";}
     printf(tmp.c_str()); 
     while (curr_time < params.time_end) {
         // Collect mesh positions and forces
@@ -505,7 +505,6 @@ int main(int argc, char* argv[]) {
         average_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * avg_cell_new_rad * 0.01; // N.m-2=Pa
         average_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(top_cell_new_rad,2) * 10000.;
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
-        std::cout << " SR = " << solid_ratio << " ";
         // write position
         nc = gpu_sys.GetNumContacts();
 
@@ -520,8 +519,8 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d|%-10.6f|%-10d|%-10.6e|%-10.6e|%-10.8f|%-10.8f, %-10.8f, %-10.8f", 
-            step, curr_time, nc, 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-10.6e | %-10.6e | %-10.8f | %-10.8f, %-10.8f, %-10.8f", 
+            step, curr_time, nc, solid_ratio, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
             min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad);
