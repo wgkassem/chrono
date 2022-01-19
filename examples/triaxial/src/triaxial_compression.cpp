@@ -481,10 +481,12 @@ int main(int argc, char* argv[]) {
                 if (abs(top_press_diff) / sigma3 * 100. > 10.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                    std::cout << "Hello it's " << top_press_diff << "\n";
                 }
                 else{
                     shift.Set( topPlate_posFunc(step-step0, 0));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                    std::cout << "Actually :( " << top_press_diff << "\n" 
                 }
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
