@@ -502,22 +502,24 @@ int main(int argc, char* argv[]) {
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
         std::cout << " SR = " << solid_ratio << " ";
         // write position
-        gpu_sys.AdvanceSimulation(iteration_step);
         nc = gpu_sys.GetNumContacts();
-
-        std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
-        std::cout << "top press: " << average_axial_press / 1000.f << " kPa, ";
-        std::cout << ", numContacts: " << nc;
-        std::cout << "\nradial pressure = " << average_radial_press / 1000.f << "kPa";
-        std::cout << " min, max, avg. radius = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n";
 
         sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", step-step0, curr_time,
         meshPositions[nmeshes-1], min_cell_new_rad, max_cell_new_rad, top_cell_new_rad, avg_cell_new_rad, 
         min_tick, max_tick, avg_tick,
         average_axial_press, average_radial_press);
         fticks << tickout;
-
+        
+        gpu_sys.AdvanceSimulation(iteration_step);
+        
         if (step % out_steps == 0){
+            std::cout << "top pos_z: " << meshPositions[nmeshes-1].z() << " cm, ";
+            std::cout << "top press: " << average_axial_press / 1000.f << " kPa, ";
+            std::cout << ", numContacts: " << nc;
+            std::cout << "\nradial pressure = " << average_radial_press / 1000.f << "kPa";
+            std::cout << " min, max, avg. radius = " << min_cell_new_rad << ", " << max_cell_new_rad << ", " << avg_cell_new_rad << " cm\n";
+
+
             // filenames for mesh, particles, force-per-mesh
             char filename[100], filenamemesh[100], filenameforce[100];;
             sprintf(filename, "%s/step%06d", out_dir.c_str(), step);
