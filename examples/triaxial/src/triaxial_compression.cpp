@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
                 else{
                     shift.Set( topPlate_posFunc(step-step0, 0));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                    std::cout << "Actually :( " << top_press_diff << "\n" 
+                    std::cout << "Actually :( " << top_press_diff << "\n"; 
                 }
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
