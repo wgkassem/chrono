@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
     float average_radial_press, average_axial_press, axial_radial_ratio, top_press_diff, tile_press_diff, topmove;
     float avg_cell_new_rad, min_cell_new_rad, max_cell_new_rad, top_cell_new_rad;
     float max_tick, avg_tick, min_tick;
-    char tickout[1000];
+    char tickout[500];
     unsigned int ntopmeshes; //number of side meshes near the top
     
     fticks << "step, curr_time, top_ticks, axial_ticks top_press, axial_press";
@@ -516,7 +516,6 @@ int main(int argc, char* argv[]) {
         min_tick, max_tick, avg_tick,
         average_axial_press, average_radial_press);
         fticks << tickout;
-        fticks.flush();
 
         if (step % out_steps == 0){
             // filenames for mesh, particles, force-per-mesh
@@ -565,6 +564,7 @@ int main(int argc, char* argv[]) {
             }
 
             printf("time = %.4f\n", curr_time);
+            fticks.flush();
         }
 
         step++;
