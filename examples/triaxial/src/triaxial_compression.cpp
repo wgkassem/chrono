@@ -496,6 +496,7 @@ int main(int argc, char* argv[]) {
                 if ( abs(tile_press_diff) / sigma3 * 100. > 1. and (axial_radial_ratio > 0.45 or axial_radial_ratio < 0 )){        
                     shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                    printf("\n\nmoving %d, %6f\n\n", imesh, axial_radial_ratio);
                 }
                 else{
                     shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, 0));
