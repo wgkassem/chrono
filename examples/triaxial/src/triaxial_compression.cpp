@@ -461,7 +461,9 @@ int main(int argc, char* argv[]) {
             avg_cell_new_rad += tmp_rad;
             if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
             if (imesh>0 and imesh<nmeshes-1 and tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;}
-            if (imesh>0 and imesh<nmeshes-1 and meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 2.f * params.sphere_radius ){top_cell_new_rad += tmp_rad; ntopmeshes+=1;}
+            if (imesh>0 and imesh<nmeshes-1 and 
+            meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 5.f * params.sphere_radius and 
+            meshPositions[imesh].z() < meshPositions[nmeshes-1].z() ){top_cell_new_rad += tmp_rad; ntopmeshes+=1;}
         }
         avg_cell_new_rad /= (nmeshes - 2);
         top_cell_new_rad /= ntopmeshes;
@@ -478,7 +480,7 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                if (abs(top_press_diff) / sigma3 * 100. > 10.){
+                if (abs(top_press_diff) / sigma3 * 100. > 1.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 }
@@ -489,8 +491,9 @@ int main(int argc, char* argv[]) {
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
+                axial_radial_ratio = top_press_diff / tile_press_diff;
 
-                if ( abs(tile_press_diff) / sigma3 * 100. > 10. and (axial_radial_ratio > 0.45 or axial_radial_ratio < 0 )){        
+                if ( abs(tile_press_diff) / sigma3 * 100. > 1. and (axial_radial_ratio > 0.45 or axial_radial_ratio < 0 )){        
                     shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 }
@@ -509,7 +512,6 @@ int main(int argc, char* argv[]) {
         average_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * avg_cell_new_rad * 0.01; // N.m-2=Pa
         average_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(top_cell_new_rad,2) * 10000.;
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
-        axial_radial_ratio = average_axial_press / average_radial_press;
         // write position
         nc = gpu_sys.GetNumContacts();
 
