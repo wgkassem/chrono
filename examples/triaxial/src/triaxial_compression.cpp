@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
             if (i>0 && i<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[i].x()/tile_base/tile_height*10000;
                 
-                if (meshForces[nmeshes-1].z() < 1.) { contacted = 0.;}
+                if (abs(meshForces[nmeshes-1].z()) < 0.01 ) { contacted = 0.;}
                 else{contacted = 1.;} 
 
                 if ( abs(tile_press_diff) / sigma3 * 100. > 10. ){        
