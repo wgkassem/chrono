@@ -435,8 +435,8 @@ int main(int argc, char* argv[]) {
      * Main loop start
      */
     printf("Main loop starting:\n");
-    printf("\n%-10s|%-10s|-10%s|%-10%s|%-10s|%-10s|%-30s", "step", "curr_time", "#contacts", "av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
-    printf("\n%-10s|%-10s|-10%s|%-10%s|%-10s|%-10s|%-30s", "    ", "(s)", "    ", "(kPA)", "(kPa)", "(cm)", "(cm)");
+    printf("\n%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-30s", "step", "curr_time", "#contacts", "av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
+    printf("\n%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-30s", "    ", "(s)", "    ", "(kPA)", "(kPa)", "(cm)", "(cm)");
     string tmp = "";
     for (unsigned int i=0; i<100; i++){tmp += "-";}
     printf(tmp.c_str()); 
@@ -510,7 +510,7 @@ int main(int argc, char* argv[]) {
         nc = gpu_sys.GetNumContacts();
 
         sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", step-step0, curr_time,
-        meshPositions[nmeshes-1], min_cell_new_rad, max_cell_new_rad, top_cell_new_rad, avg_cell_new_rad, 
+        meshPositions[nmeshes-1].z(), min_cell_new_rad, max_cell_new_rad, top_cell_new_rad, avg_cell_new_rad, 
         min_tick, max_tick, avg_tick,
         average_axial_press, average_radial_press);
         fticks << tickout;
@@ -523,7 +523,7 @@ int main(int argc, char* argv[]) {
             step, curr_time, nc, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
-            min_cell_new_rad, max_cell_new_rad,avg_cell_new_rad);
+            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad);
 
 
             // filenames for mesh, particles, force-per-mesh
