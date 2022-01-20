@@ -54,7 +54,7 @@ float sample_rad = sample_diam / 2.f;
 
 // triaxial cell information
 ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-float cell_hgt = 10.f;  //cm
+float cell_hgt = 8.5f;  //cm
 float cell_diam = 5.f;  //cm
 float cell_rad = cell_diam / 2.f;
 
@@ -457,6 +457,7 @@ int main(int argc, char* argv[]) {
         
         for (unsigned int imesh=0; imesh < nmeshes; imesh++){
             gpu_sys.GetMeshPosition(imesh, meshPositions[imesh], 0);
+            if (meshPositions[imesh].z() > meshPositions[nmeshes-1].z()+0.2){continue;}
             tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
             avg_cell_new_rad += tmp_rad;
             if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
@@ -477,10 +478,11 @@ int main(int argc, char* argv[]) {
         for (unsigned int imesh = 1; imesh < nmeshes; imesh++){
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
             meshForces[imesh] *= F_CGS_TO_SI;
+            if (meshPositions[imesh].z() > meshPositions[nmeshes-1].z()+0.2){continue;}
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                if (abs(top_press_diff) / sigma3 * 100. > 1.){
+                if (abs(top_press_diff) / sigma3 * 100. > 5.){
                     shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 }
@@ -491,9 +493,9 @@ int main(int argc, char* argv[]) {
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
-                axial_radial_ratio = top_press_diff / tile_press_diff;
+                float axial_radial_ratio = top_press_diff / tile_press_diff;
 
-                if ( abs(tile_press_diff) / sigma3 * 100. > 1. and (axial_radial_ratio > 0.45 or axial_radial_ratio < 0 )){        
+                if ( abs(tile_press_diff) / sigma3 * 100. > 5. and (axial_radial_ratio > 0.25 or axial_radial_ratio < 0 )){        
                     shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
                     gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                     printf("\n\nmoving %d, %6f\n\n", imesh, axial_radial_ratio);
