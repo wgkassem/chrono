@@ -524,7 +524,7 @@ int main(int argc, char* argv[]) {
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
             //    float axial_radial_ratio = top_press_diff / tile_press_diff;
-                dr = pid_controllers[imesh].calculate(sigma3, abs(igma3-tile_press_diff));
+                dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-tile_press_diff));
                 float theta = atan2(meshPositions[imesh].y(), meshPositions[imesh].x());
                 dx = dr * cos(theta);
                 dy = dr * sin(theta);
