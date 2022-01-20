@@ -439,8 +439,13 @@ int main(int argc, char* argv[]) {
     float Kp_x = topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel / press_accl;
     float Kd_x = topPlate_vel.z() / press_accl;
-    PID radial_controller(params.step_size, max_radial_step, sigma3-0.01*sigma3, Kp_r, Kd_r, 0.);
-    PID axial_controller(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
+    std::vector<PID> pid_controllers;
+    
+    pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
+    for (unsigned int i=1; i < nmeshes-1; i++){
+        pid_controllers.push_back( PID(params.step_size, max_radial_step, sigma3-0.01*sigma3, Kp_r, Kd_r, 0.) );
+    }
+    pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
     
     /*
      * Main loop thermo infor
@@ -491,7 +496,9 @@ int main(int argc, char* argv[]) {
         avg_tick = 0.;
         unsigned int dstep = step - step0;
         float dr = 0;
-        float dz = 0;        
+        float dz = 0;
+        float dx = 0;
+        float dy = 0;        
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
         for (unsigned int imesh : contacting_meshes){
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
@@ -499,7 +506,7 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                dz = axial_controller.calculate(sigma3,sigma3 - top_press_diff);
+                dz = pid_controllers[imesh].calculate(sigma3,sigma3 - top_press_diff);
                 shift.Set(0., 0., mesh_ticks(dstep, 2*imesh)+dz);
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1, 2*imesh) = shift.z();   
@@ -515,10 +522,10 @@ int main(int argc, char* argv[]) {
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
             //    float axial_radial_ratio = top_press_diff / tile_press_diff;
-                float dr = radial_controller.calculate(sigma3, sigma3-tile_press_diff);
+                dr = pid_controllers[imesh].calculate(sigma3, sigma3-tile_press_diff);
                 float theta = atan2(meshPositions[imesh].y(), meshPositions[imesh].x());
-                float dx = dr * cos(theta);
-                float dy = dr * sin(theta);
+                dx = dr * cos(theta);
+                dy = dr * sin(theta);
                 shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1,2*imesh) = shift.x();
