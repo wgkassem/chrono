@@ -546,6 +546,7 @@ int main(int argc, char* argv[]) {
                 if (max_tick < tmp_tick){max_tick = tmp_tick;}
                 if (min_tick > tmp_tick){min_tick = tmp_tick;}
                 avg_tick += tmp_tick;
+                avg_tile_press_diff += tile_press_diff;
 
             }
         }
