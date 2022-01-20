@@ -490,7 +490,8 @@ int main(int argc, char* argv[]) {
         max_tick = 0.;
         avg_tick = 0.;
         unsigned int dstep = step - step0;
-        
+        float dr = 0;
+        float dz = 0;        
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
         for (unsigned int imesh : contacting_meshes){
             meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
@@ -498,7 +499,8 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                shift.Set(0., 0., mesh_ticks(dstep, imesh)+axial_controller.calculate(sigma3,sigma3 - top_press_diff));
+                dz = mesh_ticks(dstep, imesh)+axial_controller.calculate(sigma3,sigma3 - top_press_diff);
+                shift.Set(0., 0., dz);
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1, 2*imesh) = shift.z();   
                 // if (abs(top_press_diff) / sigma3 * 100. > 5.){
@@ -520,7 +522,7 @@ int main(int argc, char* argv[]) {
                 shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1,2*imesh) = shift.x();
-                mesh_ticks(dstep+1, 2*imesh+1);
+                mesh_ticks(dstep+1, 2*imesh+1) = shift.y();
                 
                 //if ( abs(tile_press_diff) / sigma3 * 100. > 5. and (axial_radial_ratio > 0.25 or axial_radial_ratio < 0 )){        
                 //    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
@@ -555,11 +557,12 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f | %-10.8f; %-10.8f |", 
             step, curr_time, nc, solid_ratio, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
-            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad);
+            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad,
+            dr, dz);
 
 
             // filenames for mesh, particles, force-per-mesh
