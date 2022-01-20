@@ -443,7 +443,7 @@ int main(int argc, char* argv[]) {
     
     pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
     for (unsigned int i=1; i < nmeshes-1; i++){
-        pid_controllers.push_back( PID(params.step_size, max_radial_step, sigma3-0.01*sigma3, Kp_r, Kd_r, 0.) );
+        pid_controllers.push_back( PID(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.) );
     }
     pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
     
