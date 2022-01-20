@@ -435,10 +435,10 @@ int main(int argc, char* argv[]) {
 
     float press_rate = 1.; // pressure speed Pa/s
     float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = -0.3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = -0.8; //topPlate_vel.z() / press_rate;
-    float Kd_r = -.1; //tile_radial_vel / press_accl;
-    float Kd_x = -.4; //topPlate_vel.z() / press_accl;
+    float Kp_r = -0.03; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = -0.08; //topPlate_vel.z() / press_rate;
+    float Kd_r = -.01; //tile_radial_vel / press_accl;
+    float Kd_x = -.04; //topPlate_vel.z() / press_accl;
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
@@ -507,7 +507,7 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                dz = pid_controllers[imesh].calculate(sigma3,sigma3 - top_press_diff);
+                dz = pid_controllers[imesh].calculate(sigma3, abs(sigma3 - top_press_diff));
                 shift.Set(0., 0., mesh_ticks(dstep, 2*imesh)+dz);
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1, 2*imesh) = shift.z();   
@@ -524,7 +524,7 @@ int main(int argc, char* argv[]) {
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
             //    float axial_radial_ratio = top_press_diff / tile_press_diff;
-                dr = pid_controllers[imesh].calculate(sigma3, sigma3-tile_press_diff);
+                dr = pid_controllers[imesh].calculate(sigma3, abs(igma3-tile_press_diff));
                 float theta = atan2(meshPositions[imesh].y(), meshPositions[imesh].x());
                 dx = dr * cos(theta);
                 dy = dr * sin(theta);
