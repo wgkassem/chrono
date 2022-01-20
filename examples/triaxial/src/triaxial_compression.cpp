@@ -439,6 +439,7 @@ int main(int argc, char* argv[]) {
     float Kp_x = topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel / press_accl;
     float Kd_x = topPlate_vel.z() / press_accl;
+    std::cout << "\ncreating PID vector";
     std::vector<PID> pid_controllers;
     
     std::cout << "\ncreating PIDs";
