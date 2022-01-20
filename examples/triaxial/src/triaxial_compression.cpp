@@ -435,10 +435,10 @@ int main(int argc, char* argv[]) {
 
     float press_rate = 1.; // pressure speed Pa/s
     float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = 0.3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = 0.8; //topPlate_vel.z() / press_rate;
-    float Kd_r = 4; //tile_radial_vel / press_accl;
-    float Kd_x = 1; //topPlate_vel.z() / press_accl;
+    float Kp_r = -0.3; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = -0.8; //topPlate_vel.z() / press_rate;
+    float Kd_r = -.1; //tile_radial_vel / press_accl;
+    float Kd_x = -.4; //topPlate_vel.z() / press_accl;
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
