@@ -467,11 +467,11 @@ int main(int argc, char* argv[]) {
             contacting_meshes.push_back(imesh);    
             tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
             avg_cell_new_rad += tmp_rad;
-            if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;std::cout<<"\nnew min rad\n";}
-            if (imesh>0 and imesh<nmeshes-1 and tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;std::cout<<"\nnew MAX rad\n";}
+            if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
+            if (imesh>0 and imesh<nmeshes-1 and tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;}
             if (imesh>0 and imesh<nmeshes-1 and 
             meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 5.f * params.sphere_radius)
-            {top_cell_new_rad += tmp_rad; ntopmeshes+=1;}
+            {top_cell_new_rad += tmp_rad; ntopmeshes++;}
         }
         avg_cell_new_rad /= (contacting_meshes.size() - 2);
         top_cell_new_rad /= ntopmeshes;
