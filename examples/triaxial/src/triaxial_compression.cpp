@@ -439,24 +439,21 @@ int main(int argc, char* argv[]) {
     float Kp_x = topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel / press_accl;
     float Kd_x = topPlate_vel.z() / press_accl;
-    std::cout << "\ncreating PID vector";
     std::vector<PID> pid_controllers;
     
-    std::cout << "\ncreating PIDs";
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
     for (unsigned int i =1; i < nmeshes-1; i++){
         pid_controllers.emplace_back(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
     }
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
-    std::cout << "\ncreated " << pid_controllers.size() << " PIDs\n";
     /*
      * Main loop thermo infor
      */
     int n;
     fticks << "step, curr_time, top_ticks, axial_ticks top_press, axial_press";
     printf("Main loop starting:\n");
-    n = printf("\n%-10s | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
-    "step", "curr_time", "contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
+    n = printf("\n%-10s | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-40s", 
+    "step", "curr_time", "contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg,top)");
     printf("\n(/%-7d) | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
     total_frames, "   (s)   ", "    (#)   ", "   (1)   ","  (kPA)  ", "  (kPa)  ", "  (cm) ", "  (cm)");
     string tmps = "\n";
@@ -480,7 +477,7 @@ int main(int argc, char* argv[]) {
  
         for (unsigned int imesh=0; imesh < nmeshes; imesh++){
             gpu_sys.GetMeshPosition(imesh, meshPositions[imesh], 0);
-            if (meshPositions[imesh].z() > meshPositions[nmeshes-1].z()+0.2){continue;}
+            if (imesh==0 or meshPositions[imesh].z() > meshPositions[nmeshes-1].z()+0.2){continue;}
             contacting_meshes.push_back(imesh);    
             tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
             avg_cell_new_rad += tmp_rad;
@@ -496,6 +493,8 @@ int main(int argc, char* argv[]) {
         min_tick = 0.;
         max_tick = 0.;
         avg_tick = 0.;
+        float avg_top_press_diff = 0;
+        float avg_tile_press_diff = 0;
         unsigned int dstep = step - step0;
         float dr = 0;
         float dz = 0;
@@ -520,6 +519,7 @@ int main(int argc, char* argv[]) {
                 //    shift.Set( topPlate_posFunc(step-step0, 0));
                 //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 //}
+                avg_top_press_diff = top_press_diff;
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
@@ -546,9 +546,11 @@ int main(int argc, char* argv[]) {
                 if (max_tick < tmp_tick){max_tick = tmp_tick;}
                 if (min_tick > tmp_tick){min_tick = tmp_tick;}
                 avg_tick += tmp_tick;
+
             }
         }
-        avg_tick /= (nmeshes - 2);
+        avg_tick /= (contacting_meshes.size() - 2);
+        avg_tile_press_diff /= (contacting_meshes.size() - 2);
         average_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * avg_cell_new_rad * 0.01; // N.m-2=Pa
         average_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(top_cell_new_rad,2) * 10000.;
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
@@ -566,12 +568,12 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f | %-10.8f; %-10.8f |", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-10.8f; %-10.8f |", 
             step, curr_time, nc, solid_ratio, 
             average_axial_press/1000., average_radial_press/1000.,
             meshPositions[nmeshes-1].z(),
-            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad,
-            dr, dz);
+            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad, top_cell_new_rad,
+            avg_top_press_diff, avg_tile_press_diff);
 
 
             // filenames for mesh, particles, force-per-mesh
