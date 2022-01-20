@@ -33,6 +33,7 @@ class PID
         // max - maximum value of manipulated variable
         // min - minimum value of manipulated variable
         PID( double dt, double max, double min, double Kp, double Kd, double Ki );
+        PID();
         // PID( const PID& other);
         // PID& operator=(const PID& other);
         // Returns the manipulated variable given a setpoint and current process value
