@@ -441,12 +441,13 @@ int main(int argc, char* argv[]) {
     float Kd_x = topPlate_vel.z() / press_accl;
     std::vector<PID> pid_controllers;
     
+    std::cout << "\ncreating PIDs";
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
     for (unsigned int i =1; i < nmeshes-1; i++){
         pid_controllers.emplace_back(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
     }
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
-    
+    std::cout << "\ncreated " << pid_controllers.size() << " PIDs\n";
     /*
      * Main loop thermo infor
      */
