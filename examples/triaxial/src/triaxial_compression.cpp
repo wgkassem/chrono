@@ -439,16 +439,13 @@ int main(int argc, char* argv[]) {
     float Kp_x = topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel / press_accl;
     float Kd_x = topPlate_vel.z() / press_accl;
-    std::vector<PID> pid_controllers;
+    std::vector<PID> pid_controllers(nmeshes, PID(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.));
     
-    PID tmp = PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. );
-    pid_controllers.push_back(tmp); 
-    for (unsigned int i=1; i < nmeshes-1; i++){
-        PID tmp = PID(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
-        pid_controllers.push_back( tmp );
+    pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
+    for (unsigned int i =1; i < nmeshes-1; i++){
+        pid_controllers.emplace_back(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
     }
-    PID tmp = PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. );
-    pid_controllers.push_back(tmp); 
+    pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
     
     /*
      * Main loop thermo infor
