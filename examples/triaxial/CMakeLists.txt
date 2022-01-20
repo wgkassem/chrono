@@ -148,7 +148,7 @@ set_target_properties(triaxial PROPERTIES
 # Link to Chrono libraries and dependency libraries
 #--------------------------------------------------------------
 
-target_link_libraries(triaxial ${CHRONO_LIBRARIES})
+target_link_libraries(triaxial ${CHRONO_LIBRARIES} pid)
 
 #--------------------------------------------------------------
 # === 4 (OPTIONAL) ===

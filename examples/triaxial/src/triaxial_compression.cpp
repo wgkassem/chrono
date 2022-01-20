@@ -32,6 +32,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "pid.h"
+
 using namespace chrono;
 using namespace chrono::gpu;
 
@@ -368,14 +370,15 @@ int main(int argc, char* argv[]) {
     std::ofstream fticks(out_dir+"/fticks.csv", std::ios::out); 
     
     ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
-    mesh_ticks(0,2*nmeshes-1) = topPlate_offset.z();
+    mesh_ticks(0,2*nmeshes-2) = topPlate_offset.z();
     for (unsigned int i = 0; i < 2*nmeshes-2; i++){mesh_ticks(0,i)=0.;}
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
     ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
-
+    float max_axial_step = params.step_size *topPlate_vel.z();
+    float min_axial_step = params.step_size * topPlate_vel.z() / 10.; 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
         ChVector<> shift(0, 0, 0);
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
@@ -385,8 +388,9 @@ int main(int argc, char* argv[]) {
 
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
-    float tile_radial_step = 0.3 * params.sphere_radius; // 30% sphere radius movement
     float tile_radial_vel = -1.; // max speed is cm.s-1
+    float max_radial_step = params.step_size * tile_radial_vel;
+    float min_radial_step = params.step_size * tile_radial_vel / 10.;
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -406,9 +410,7 @@ int main(int argc, char* argv[]) {
     };
      
     // create vectors to hold useful information on meshes
-    ChVector<> myv, shift, v0, w0;
-    v0.Set(0,0,0);
-    w0.Set(0,0,0);
+    ChVector<> myv, shift, v0, w0; v0.Set(0,0,0); w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
     ChVector<> tmp1, tmp2, tmp3;
     for (unsigned int i=0; i < nmeshes; i++){
@@ -430,7 +432,15 @@ int main(int argc, char* argv[]) {
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     unsigned int step0 = step;
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
-    
+
+    float press_rate = 10.; // pressure speed Pa/s
+    float press_accl = 5.; // pressure acceleration Pa/s^2
+    float Kp_r = tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = topPlate_vel.z() / press_rate;
+    float Kd_r = tile_radial_vel / press_accl;
+    float Kd_x = topPlate_vel.z() / press_accl;
+    PID radial_controller(params.step_size, max_radial_step, sigma3-0.01*sigma3, Kp_r, Kd_r, 0.);
+    PID axial_controller(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
     
     /*
      * Main loop thermo infor
@@ -488,28 +498,38 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                if (abs(top_press_diff) / sigma3 * 100. > 5.){
-                    shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                }
-                else{
-                    shift.Set( topPlate_posFunc(step-step0, 0));
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                }
+                shift.Set(0., 0., mesh_ticks(dstep, imesh)+axial_controller.calculate(sigma3,sigma3 - top_press_diff));
+                gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                mesh_ticks(dstep+1, 2*imesh) = shift.z();   
+                // if (abs(top_press_diff) / sigma3 * 100. > 5.){
+                //  shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
+                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                // }
+                //else{
+                //    shift.Set( topPlate_posFunc(step-step0, 0));
+                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                //}
             }
             if (imesh>0 && imesh<nmeshes-1){ // tile
                 tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
-                float axial_radial_ratio = top_press_diff / tile_press_diff;
-
-                if ( abs(tile_press_diff) / sigma3 * 100. > 5. and (axial_radial_ratio > 0.25 or axial_radial_ratio < 0 )){        
-                    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                    //printf("\n\nmoving %d, %6f\n\n", imesh, axial_radial_ratio);
-                }
-                else{
-                    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, 0));
-                    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                }
+            //    float axial_radial_ratio = top_press_diff / tile_press_diff;
+                float dr = radial_controller.calculate(sigma3, sigma3-tile_press_diff);
+                float theta = atan2(meshPositions[imesh].y(), meshPositions[imesh].x());
+                float dx = dr * cos(theta);
+                float dy = dr * sin(theta);
+                shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
+                gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                mesh_ticks(dstep+1,2*imesh) = shift.x();
+                mesh_ticks(dstep+1, 2*imesh+1);
+                
+                //if ( abs(tile_press_diff) / sigma3 * 100. > 5. and (axial_radial_ratio > 0.25 or axial_radial_ratio < 0 )){        
+                //    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
+                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                //}
+                //else{
+                //    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, 0));
+                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+                //}
                 average_radial_press += meshForces[imesh].x(); 
                 float tmp_tick = sqrt(pow(mesh_ticks(dstep, 2*imesh),2) + pow(mesh_ticks(dstep, 2*imesh+1),2)); // r-component
                 if (max_tick < tmp_tick){max_tick = tmp_tick;}
