@@ -499,7 +499,7 @@ int main(int argc, char* argv[]) {
              
             if (imesh==nmeshes-1){
                 top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                dz = mesh_ticks(dstep, imesh)+axial_controller.calculate(sigma3,sigma3 - top_press_diff);
+                dz = mesh_ticks(dstep, 2*imesh)+axial_controller.calculate(sigma3,sigma3 - top_press_diff);
                 shift.Set(0., 0., dz);
                 gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
                 mesh_ticks(dstep+1, 2*imesh) = shift.z();   
