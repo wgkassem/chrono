@@ -441,11 +441,14 @@ int main(int argc, char* argv[]) {
     float Kd_x = topPlate_vel.z() / press_accl;
     std::vector<PID> pid_controllers;
     
-    pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
+    PID tmp = PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. );
+    pid_controllers.push_back(tmp); 
     for (unsigned int i=1; i < nmeshes-1; i++){
-        pid_controllers.push_back( PID(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.) );
+        PID tmp = PID(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
+        pid_controllers.push_back( tmp );
     }
-    pid_controllers.push_back(PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. )); 
+    PID tmp = PID(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. );
+    pid_controllers.push_back(tmp); 
     
     /*
      * Main loop thermo infor
@@ -457,9 +460,9 @@ int main(int argc, char* argv[]) {
     "step", "curr_time", "contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg)");
     printf("\n(/%-7d) | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-30s", 
     total_frames, "   (s)   ", "    (#)   ", "   (1)   ","  (kPA)  ", "  (kPa)  ", "  (cm) ", "  (cm)");
-    string tmp = "\n";
-    for (unsigned int i=0; i<n; i++){tmp += "-";}
-    std::cout << tmp;; 
+    string tmps = "\n";
+    for (unsigned int i=0; i<n; i++){tmps += "-";}
+    std::cout << tmps;; 
     /*
     * Main loop starts
     */    
