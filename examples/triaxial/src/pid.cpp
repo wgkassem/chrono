@@ -29,43 +29,7 @@
 
 using namespace std;
 
-class PIDImpl
-{
-    public:
-        PIDImpl( double dt, double max, double min, double Kp, double Kd, double Ki );
-        ~PIDImpl();
-        double calculate( double setpoint, double pv );
-
-    private:
-        double _dt;
-        double _max;
-        double _min;
-        double _Kp;
-        double _Kd;
-        double _Ki;
-        double _pre_error;
-        double _integral;
-};
-
-
-PID::PID( double dt, double max, double min, double Kp, double Kd, double Ki )
-{
-    pimpl = new PIDImpl(dt,max,min,Kp,Kd,Ki);
-}
-double PID::calculate( double setpoint, double pv )
-{
-    return pimpl->calculate(setpoint,pv);
-}
-PID::~PID() 
-{
-    delete pimpl;
-}
-
-
-/**
- * Implementation
- */
-PIDImpl::PIDImpl( double dt, double max, double min, double Kp, double Kd, double Ki ) :
+PID::PID( double dt, double max, double min, double Kp, double Kd, double Ki ) :
     _dt(dt),
     _max(max),
     _min(min),
@@ -77,7 +41,19 @@ PIDImpl::PIDImpl( double dt, double max, double min, double Kp, double Kd, doubl
 {
 }
 
-double PIDImpl::calculate( double setpoint, double pv )
+PID::PID() : 
+    _dt(1), 
+    _max(1), 
+    _min(0),
+    _Kp(0),
+    _Kd(0),
+    _Ki(0),
+    _pre_error(0),
+    _integral(0)
+{
+}
+
+double PID::calculate( double setpoint, double pv )
 {
     
     // Calculate error
@@ -109,7 +85,7 @@ double PIDImpl::calculate( double setpoint, double pv )
     return output;
 }
 
-PIDImpl::~PIDImpl()
+PID::~PID() 
 {
 }
 
