@@ -434,7 +434,7 @@ int main(int argc, char* argv[]) {
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
     float press_rate = 1.; // pressure speed Pa/s
-    float press_accl = 10.; // pressure acceleration Pa/s^2
+    float press_accl = .1; // pressure acceleration Pa/s^2
     float Kp_r = tile_radial_vel / press_rate; // cm/Pa
     float Kp_x = topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel / press_accl;
