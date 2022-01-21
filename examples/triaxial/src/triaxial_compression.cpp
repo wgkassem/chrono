@@ -389,8 +389,6 @@ int main(int argc, char* argv[]) {
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
     float tile_radial_vel = -1.; // max speed is cm.s-1
-    float max_radial_step = params.step_size * tile_radial_vel;
-    float min_radial_step = params.step_size * tile_radial_vel / 10.;
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -433,12 +431,15 @@ int main(int argc, char* argv[]) {
     unsigned int step0 = step;
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
-    float press_rate = 1.; // pressure speed Pa/s
-    float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = -0.0003; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = -0.0008; //topPlate_vel.z() / press_rate;
-    float Kd_r = -.0001; //tile_radial_vel / press_accl;
-    float Kd_x = -.0004; //topPlate_vel.z() / press_accl;
+//    float press_rate = 1.; // pressure speed Pa/s
+//    float press_accl = .1; // pressure acceleration Pa/s^2
+    float Kp_r = tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
+    float Kd_r = Kp_r/10.; //tile_radial_vel / press_accl;
+    float Kd_x = Kp_x/10.; //topPlate_vel.z() / press_accl;
+    
+    float max_radial_step = params.step_size * tile_radial_vel;
+    float min_radial_step = -params.step_size * tile_radial_vel;
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
