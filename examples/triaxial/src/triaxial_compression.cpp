@@ -546,9 +546,9 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.0;
-        if (average_xr_press[0] / average_xr_press[1] < 0.7){move_r = 0;}
+        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.7){move_r = 0;}
         float move_x = 1.0;
-        if (average_xr_press[1] / average_xr_press[0] < 0.7){move_x = 0.;}
+        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.7){move_x = 0.;}
         float move_radial = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
