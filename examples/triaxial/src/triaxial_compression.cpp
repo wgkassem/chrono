@@ -137,14 +137,16 @@ void get_radius_metrics(const std::vector<ChVector<>>& pos, float radii[3], cons
         }
         radii[2] += pos[imesh].x();
     }
+    if (contacts.size() == 0){std::cout << "Error!\n";}
+    radii[2] /= (float) contacts.size();
 }
 
-void get_radial_axial_pressure(const std::vector<ChVector<>>& pos, const std::vector<ChVector<>>& forces, float radii[3], float p[2], const std::vector<unsigned int>& contacts){
+void get_axial_radial_pressure(const std::vector<ChVector<>>& pos, const std::vector<ChVector<>>& forces, float radii[3], float p[2], const std::vector<unsigned int>& contacts){
     unsigned int nmesh = pos.size();
     float zmax = pos[nmesh-1].z();
     float zmin = pos[0].z();
     float h = zmax-zmin;
-    float avg_surf_A = 2. * M_PI * radii[2];
+    float avg_face_P = 2. * M_PI * radii[2];
     float avg_face_A = 2. * M_PI * pow(radii[2],2);
     float sumFr = 0.;  
     for (unsigned int imesh : contacts){
@@ -474,12 +476,10 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> meshForces(nmeshes), meshTorques(nmeshes), meshPositions(nmeshes);
     std::vector<unsigned int> contacting_meshes;
 
-    stdd:cout << "\nvector size = " << meshPositions.size() << "\n";
     gpu_sys.GetMeshPositions(meshPositions, 1);
     float new_cell_radii[3]; 
     float top_cell_new_rad;
     get_contacting_meshes(meshPositions, contacting_meshes);
-    std::cout << "\nhello-2\n";
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
     // pressure information
@@ -487,9 +487,7 @@ int main(int argc, char* argv[]) {
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
-    std::cout << "\nhello1\n";
     cart2cyl_vector(meshPositions, meshForces);
-    std::cout << "\nhello2\n";
 
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
     float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
