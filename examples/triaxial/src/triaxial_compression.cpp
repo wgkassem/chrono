@@ -20,12 +20,6 @@
 #include <iostream>
 #include <string>
 
-#include <stdio.h>
-#include <execinfo.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChQuaternion.h"     
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -174,7 +168,6 @@ void handler(int sig) {
 }
 
 int main(int argc, char* argv[]) {
-    signal(SIGSEGV, handler);   // install our handler
     // ===============================================
     // 1. Read json paramater files
     // 2. Create ChSystemGpuMesh object
@@ -507,11 +500,13 @@ int main(int argc, char* argv[]) {
     get_contacting_meshes(meshPositions, contacting_meshes);
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
+        std::cout << "\nhello1\n"
     // pressure information
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
 
+        std::cout << "\nhello2\n"
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
     float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
     float max_tick, avg_tick, min_tick;
@@ -559,7 +554,9 @@ int main(int argc, char* argv[]) {
         unsigned int dstep = step - step0;
         float tmp_rad = 0.0;
         contacting_meshes.clear();
- 
+
+        std::cout << "\nhello\n"
+
         gpu_sys.GetMeshPositions(meshPositions, 1);
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
         cart2cyl_vector(meshPositions, meshForces);
@@ -577,8 +574,8 @@ int main(int argc, char* argv[]) {
         float dz = 0;
         float dx = 0;
         float dy = 0;
-        float min_tile_press_diff = INFINITY;
-        float max_tile_press_diff = -INFINITY;
+        float min_tile_press_diff = 1e9;
+        float max_tile_press_diff = -1e9;
         float avg_tile_press_diff = 0;
         for (unsigned int imesh : contacting_meshes){
             tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000*F_CGS_TO_SI;
@@ -594,6 +591,9 @@ int main(int argc, char* argv[]) {
                 
             if (max_tick < dr){max_tick = dr;}
             else{if (min_tick > dr){min_tick = dr;}}
+            if (tile_press_diff < min_tile_press_diff){min_tile_press_diff = tile_press_diff;}
+            else{if(tile_press_diff > max_tile_press_diff){max_tile_press_diff = tile_press_diff};}
+
             avg_tick += dr;
             avg_tile_press_diff += tile_press_diff;
         }
@@ -633,7 +633,7 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-10.8f; %-10.8f |", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f |", 
             step, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
