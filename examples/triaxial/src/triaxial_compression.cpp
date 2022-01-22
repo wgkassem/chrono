@@ -471,30 +471,24 @@ int main(int argc, char* argv[]) {
      
     // create vectors to hold useful information on meshes
     ChVector<> myv, shift, v0, w0; v0.Set(0,0,0); w0.Set(0,0,0);
-    std::vector<ChVector<>> meshForces, meshTorques, meshPositions;
-    ChVector<> tmp1, tmp2, tmp3;
-    for (unsigned int i=0; i < nmeshes; i++){
-        gpu_sys.CollectMeshContactForces(i,tmp1,tmp2);
-        gpu_sys.GetMeshPosition(i,tmp3,0);
-        meshForces.push_back(tmp1);
-        meshTorques.push_back(tmp2);
-        meshPositions.push_back(tmp3);
-    }
+    std::vector<ChVector<>> meshForces(nmeshes), meshTorques(nmeshes), meshPositions(nmeshes);
 
     float new_cell_radii[3]; 
     float top_cell_new_rad;
     std::vector<unsigned int> contacting_meshes;
     get_contacting_meshes(meshPositions, contacting_meshes);
+    std::cout << "\nhello-2\n";
     gpu_sys.GetMeshPositions(meshPositions, 1);
+    std::cout << "\nhello-1\n";
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
-        std::cout << "\nhello1\n";
     // pressure information
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
-        std::cout << "\nhello2\n";
+    std::cout << "\nhello1\n";
     cart2cyl_vector(meshPositions, meshForces);
+    std::cout << "\nhello2\n";
 
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
     float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
@@ -544,8 +538,6 @@ int main(int argc, char* argv[]) {
         float tmp_rad = 0.0;
         contacting_meshes.clear();
 
-        std::cout << "\nhello3\n";
-
         gpu_sys.GetMeshPositions(meshPositions, 1);
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
         cart2cyl_vector(meshPositions, meshForces);
@@ -554,7 +546,6 @@ int main(int argc, char* argv[]) {
         get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
         get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
-        std::cout << "\nhello4\n";
         float axial_radial_ratio = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
