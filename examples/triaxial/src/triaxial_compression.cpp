@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
-    get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
+    get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
     cart2cyl_vector(meshPositions, meshForces);
 
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
@@ -543,7 +543,7 @@ int main(int argc, char* argv[]) {
         
         get_contacting_meshes(meshPositions, contacting_meshes);
         get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
-        get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
+        get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float axial_radial_ratio = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
