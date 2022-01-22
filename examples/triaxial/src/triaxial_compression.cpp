@@ -154,19 +154,6 @@ void get_radial_axial_pressure(const std::vector<ChVector<>>& pos, const std::ve
      p[1] = sumFr / h / avg_surf_A;
 }
 
-void handler(int sig) {
-  void *array[10];
-  size_t size;
-
-  // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
-
-  // print out all the frames to stderr
-  fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
-  exit(1);
-}
-
 int main(int argc, char* argv[]) {
     // ===============================================
     // 1. Read json paramater files
@@ -500,13 +487,13 @@ int main(int argc, char* argv[]) {
     get_contacting_meshes(meshPositions, contacting_meshes);
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
-        std::cout << "\nhello1\n"
+        std::cout << "\nhello1\n";
     // pressure information
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
 
-        std::cout << "\nhello2\n"
+        std::cout << "\nhello2\n";
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
     float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
     float max_tick, avg_tick, min_tick;
@@ -555,7 +542,7 @@ int main(int argc, char* argv[]) {
         float tmp_rad = 0.0;
         contacting_meshes.clear();
 
-        std::cout << "\nhello\n"
+        std::cout << "\nhello3\n";
 
         gpu_sys.GetMeshPositions(meshPositions, 1);
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
@@ -565,6 +552,7 @@ int main(int argc, char* argv[]) {
         get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
         get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
+        std::cout << "\nhello4\n";
         float axial_radial_ratio = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
@@ -592,7 +580,7 @@ int main(int argc, char* argv[]) {
             if (max_tick < dr){max_tick = dr;}
             else{if (min_tick > dr){min_tick = dr;}}
             if (tile_press_diff < min_tile_press_diff){min_tile_press_diff = tile_press_diff;}
-            else{if(tile_press_diff > max_tile_press_diff){max_tile_press_diff = tile_press_diff};}
+            else{if(tile_press_diff > max_tile_press_diff){max_tile_press_diff = tile_press_diff;}}
 
             avg_tick += dr;
             avg_tile_press_diff += tile_press_diff;
@@ -609,15 +597,8 @@ int main(int argc, char* argv[]) {
         shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
-        // if (abs(top_press_diff) / sigma3 * 100. > 5.){
-        //  shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
-        //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-        // }
-        //else{
-        //    shift.Set( topPlate_posFunc(step-step0, 0));
-        //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-        //}
-        
+
+
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(new_cell_radii[2],2));
         // write position
         nc = gpu_sys.GetNumContacts();
