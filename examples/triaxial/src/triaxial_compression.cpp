@@ -474,6 +474,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> meshForces(nmeshes), meshTorques(nmeshes), meshPositions(nmeshes);
     std::vector<unsigned int> contacting_meshes;
 
+    stdd:cout << "\nvector size = " << meshPositions.size() << "\n";
     gpu_sys.GetMeshPositions(meshPositions, 1);
     float new_cell_radii[3]; 
     float top_cell_new_rad;
