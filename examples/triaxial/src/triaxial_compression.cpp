@@ -472,17 +472,17 @@ int main(int argc, char* argv[]) {
     // create vectors to hold useful information on meshes
     ChVector<> myv, shift, v0, w0; v0.Set(0,0,0); w0.Set(0,0,0);
     std::vector<ChVector<>> meshForces(nmeshes), meshTorques(nmeshes), meshPositions(nmeshes);
+    std::vector<unsigned int> contacting_meshes;
 
+    gpu_sys.GetMeshPositions(meshPositions, 1);
     float new_cell_radii[3]; 
     float top_cell_new_rad;
-    std::vector<unsigned int> contacting_meshes;
     get_contacting_meshes(meshPositions, contacting_meshes);
     std::cout << "\nhello-2\n";
-    gpu_sys.GetMeshPositions(meshPositions, 1);
-    std::cout << "\nhello-1\n";
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
     // pressure information
+    gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
