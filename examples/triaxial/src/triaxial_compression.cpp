@@ -567,7 +567,7 @@ int main(int argc, char* argv[]) {
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
-            std::cout << "\ni = " << imesh << ", shift = (" << shift.x() << "," << shift.y() << ")\n"; 
+            //std::cout << "\ni = " << imesh << ", shift = (" << shift.x() << "," << shift.y() << ")\n"; 
             gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
             mesh_ticks(dstep+1,2*imesh) = shift.x();
             mesh_ticks(dstep+1, 2*imesh+1) = shift.y();
