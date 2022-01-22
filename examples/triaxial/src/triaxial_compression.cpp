@@ -608,13 +608,13 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-2.1f, %-2.1f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-4.2f, %-4.2f, %4.2f", 
             step, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
             new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 0.0,
             top_press_diff, avg_tile_press_diff,
-            move_x, move_r);
+            dr, dx, dy);
 
 
             // filenames for mesh, particles, force-per-mesh
