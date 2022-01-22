@@ -485,6 +485,7 @@ int main(int argc, char* argv[]) {
     float top_cell_new_rad;
     std::vector<unsigned int> contacting_meshes;
     get_contacting_meshes(meshPositions, contacting_meshes);
+    gpu_sys.GetMeshPositions(meshPositions, 1);
     get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
 
         std::cout << "\nhello1\n";
@@ -492,8 +493,9 @@ int main(int argc, char* argv[]) {
     float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
-
         std::cout << "\nhello2\n";
+    cart2cyl_vector(meshPositions, meshForces);
+
     float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
     float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
     float max_tick, avg_tick, min_tick;
