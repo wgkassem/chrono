@@ -153,7 +153,7 @@ void get_axial_radial_pressure(const std::vector<ChVector<>>& pos, const std::ve
         sumFr += forces[imesh].x();
     }
      p[0] = forces[nmesh-1].z()/avg_face_A;
-     p[1] = sumFr / h / avg_surf_A;
+     p[1] = sumFr / h / avg_face_P;
 }
 
 int main(int argc, char* argv[]) {
