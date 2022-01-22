@@ -651,6 +651,16 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
+void ChSystemGpuMesh::GetMeshPositions(std::vector<ChVector<>>& positions, const int& coord_sys) const {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    unsigned int nmeshes = sys_trimesh->meshSoup->numTriangleFamilies;
+    positions.clear();
+
+    for (unsigned int i=0; i < nmeshes; i++){
+        GetMeshPosition(i, positions[i], coord_sys);
+    }
+}
+
 void ChSystemGpuMesh::GetMeshPosition(int mesh, ChVector<>& position, const int& coord_sys) const {
 
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);

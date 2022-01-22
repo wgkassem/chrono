@@ -47,6 +47,7 @@ float render_fps = 2000;
 float F_CGS_TO_SI = 1e-5f;
 float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
+float P_CGS_TO_SI = F_CGS_TO_SI / L_CGS_TO_SI / L_CGS_TO_SI;
 
 // sample information
 ChVector<float> sample_center(0.f, 0.f, 0.f); //cm
@@ -72,10 +73,8 @@ template <typename T> int sgn(T val) {
 ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
     ChVector<> vcyl;
 
-    double norm_pos = sqrt( pos.x() * pos.x() + pos.y() * pos.y() );
-    double theta_pos = acos( pos.x() / norm_pos );
-    if (pos.y() < 0) {theta_pos = 2.f * M_PI - theta_pos;}
-    if (norm_pos  == 0) { theta_pos = 0; }
+    double norm_pos = pos.x();
+    double theta_pos = pos.y();
 
     double norm_v = sqrt( v.x() * v.x() + v.y() * v.y());
     double theta_v = acos( v.x() / norm_v);
@@ -91,6 +90,69 @@ ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
     return vcyl;
 }
 
+void cart2cyl_vector(std::vector<ChVector<>>& pos, std::vector<ChVector<>>& v){
+    unsigned int N = pos.size();
+    for (unsigned int i = 0; i < N; i++){
+
+        double norm_pos = pos[i].x();
+        double theta_pos = pos[i].y();
+
+        double norm_v = sqrt( v[i].x() * v[i].x() + v[i].y() * v[i].y());
+        double theta_v = acos( v[i].x() / norm_v);
+        if (v[i].y() < 0) {theta_v = 2.f * M_PI - theta_v;}
+        if (norm_v < 0.0000001) {theta_v = 0.f;}
+    
+        double cst = cos(theta_pos - theta_v);
+        double snt = sin(theta_pos - theta_v);
+        v[i].Set( norm_v * cst, 
+                    norm_v * snt,
+                    v[i].z() );
+    }
+}
+
+int get_contacting_meshes(const std::vector<ChVector<>>& pos, std::vector<unsigned int>& contacts){
+
+    contacts.clear();
+    unsigned int nmesh = pos.size();
+    float maxz = pos[nmesh-1].z() - 0.5;
+    for (unsigned int imesh=1; imesh<nmesh-1; imesh++){
+        if (pos[imesh].z() < maxz){
+            contacts.push_back(imesh);
+        }
+    }
+    return contacts.size();
+}
+
+void get_radius_metrics(const std::vector<ChVector<>>& pos, float radii[3], const std::vector<unsigned int>& contacts){
+    unsigned int nmesh = pos.size();
+    float zmax = pos[nmesh-1].z();
+    radii[0] = 1000.;
+    radii[1] = -1000.;
+    radii[2] = 0.;
+    float tmp = 0.;
+    for (unsigned int imesh : contacts){
+        if (pos[imesh].x() < radii[0]){radii[0] = pos[imesh].x();}
+        else {
+            if (pos[imesh].y() > radii[1]){radii[1] = pos[imesh].x();}
+        }
+        radii[2] += pos[imesh].x();
+    }
+}
+
+void get_radial_axial_pressure(const std::vector<ChVector<>>& pos, const std::vector<ChVector<>>& forces, float radii[3], float p[2], const std::vector<unsigned int>& contacts){
+    unsigned int nmesh = pos.size();
+    float zmax = pos[nmesh-1].z();
+    float zmin = pos[0].z();
+    float h = zmax-zmin;
+    float avg_surf_A = 2. * M_PI * radii[2];
+    float avg_face_A = 2. * M_PI * pow(radii[2],2);
+    float sumFr = 0.;  
+    for (unsigned int imesh : contacts){
+        sumFr += forces[imesh].x();
+    }
+     p[0] = forces[nmesh-1].z()/avg_face_A;
+     p[1] = sumFr / h / avg_surf_A;
+}
 
 int main(int argc, char* argv[]) {
     // ===============================================
@@ -375,7 +437,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.85f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
     float max_axial_step = params.step_size *topPlate_vel.z();
     float min_axial_step = params.step_size * topPlate_vel.z() / 10.; 
@@ -388,7 +450,7 @@ int main(int argc, char* argv[]) {
 
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
-    float tile_radial_vel = -.5; // max speed is cm.s-1
+    float tile_radial_vel = -.85; // max speed is cm.s-1
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -419,14 +481,22 @@ int main(int argc, char* argv[]) {
         meshPositions.push_back(tmp3);
     }
 
-    float average_radial_press, average_axial_press, axial_radial_ratio, top_press_diff, tile_press_diff, topmove;
-    float avg_cell_new_rad, min_cell_new_rad, max_cell_new_rad, top_cell_new_rad;
+    float new_cell_radii[3]; 
+    float top_cell_new_rad;
+    std::vector<unsigned int> contacting_meshes;
+    get_contacting_meshes(meshPositions, contacting_meshes);
+    get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
+
+    // pressure information
+    float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
+    float average_xr_press[2];
+    get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
+
+    float top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
+    float radial_press_diff = sigma3 - average_xr_press[1] * P_CGS_TO_SI;
     float max_tick, avg_tick, min_tick;
     char tickout[500];
-    unsigned int ntopmeshes; //number of side meshes near the top
-    std::vector<unsigned int> contacting_meshes;
 
-    float sigma3 = 500.f; // Pa, consolidation stress
     float sphere_vol = 4./3.*M_PI*pow(params.sphere_radius,3);
     unsigned int step0 = step;
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
@@ -451,7 +521,8 @@ int main(int argc, char* argv[]) {
      * Main loop thermo infor
      */
     int n;
-    fticks << "step, curr_time, top_ticks, axial_ticks top_press, axial_press";
+    fticks << "step, curr_time, contacts, top_ticks, axial_ticks top_press, axial_press";
+    
     printf("Main loop starting:\n");
     n = printf("\n%-10s | %-10s | %-10s | %-11s | %-11s | %-11s | %-10s | %-40s", 
     "step", "curr_time", "contacts", "solid_ratio","av. pzz", "av. prr", "pos_z", "radius (min,max,avg,top)");
@@ -465,105 +536,77 @@ int main(int argc, char* argv[]) {
     */    
     while (curr_time < params.time_end) {
         // Collect mesh positions and forces
-        average_radial_press = 0.f;
-        average_axial_press = 0.f;
-        axial_radial_ratio = 0.f;
-        avg_cell_new_rad=0.0;
-        min_cell_new_rad=1000.;
-        max_cell_new_rad=-1000.;
-        top_cell_new_rad=0.0;
-        ntopmeshes = 0;
+        unsigned int dstep = step - step0;
         float tmp_rad = 0.0;
         contacting_meshes.clear();
  
-        for (unsigned int imesh=0; imesh < nmeshes; imesh++){
-            gpu_sys.GetMeshPosition(imesh, meshPositions[imesh], 0);
-            if (imesh==0 or meshPositions[imesh].z() > meshPositions[nmeshes-1].z()+0.2){continue;}
-            contacting_meshes.push_back(imesh);    
-            tmp_rad = sqrt(pow(meshPositions[imesh].x(),2)+pow(meshPositions[imesh].y(),2));
-            avg_cell_new_rad += tmp_rad;
-            if (imesh>0 and imesh<nmeshes-1 and tmp_rad < min_cell_new_rad){min_cell_new_rad = tmp_rad;}
-            if (imesh>0 and imesh<nmeshes-1 and tmp_rad > max_cell_new_rad){max_cell_new_rad = tmp_rad;}
-            if (imesh>0 and imesh<nmeshes-1 and 
-            meshPositions[imesh].z() > gpu_sys.GetMaxParticleZ() - 5.f * params.sphere_radius)
-            {top_cell_new_rad += tmp_rad; ntopmeshes++;}
-        }
-        avg_cell_new_rad /= (contacting_meshes.size() - 2);
-        top_cell_new_rad /= ntopmeshes;
+        gpu_sys.GetMeshPositions(meshPositions, 1);
+        gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
+        cart2cyl_vector(meshPositions, meshForces);
         
-        min_tick = 0.;
-        max_tick = 0.;
+        get_contacting_meshes(meshPositions, contacting_meshes);
+        get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
+        get_radial_axial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
+
+        float axial_radial_ratio = average_xr_press[0] / average_xr_press[1];
+        float tile_press_diff = 0.;
+        min_tick =  1000.;
+        max_tick = -1000.;
         avg_tick = 0.;
-        float avg_top_press_diff = 0;
-        float avg_tile_press_diff = 0;
-        unsigned int dstep = step - step0;
         float dr = 0;
         float dz = 0;
         float dx = 0;
-        float dy = 0;        
-        gpu_sys.CollectMeshContactForces(meshForces, meshTorques);  // get forces
+        float dy = 0;
+        float min_tile_press_diff = INFINITY;
+        float max_tile_press_diff = -INFINITY;
+        float avg_tile_press_diff = 0;
         for (unsigned int imesh : contacting_meshes){
-            meshForces[imesh].Set(cart2cyl_vector(meshPositions[imesh], meshForces[imesh])); // change to cylindrical
-            meshForces[imesh] *= F_CGS_TO_SI;
-             
-            if (imesh==nmeshes-1){
-                top_press_diff = sigma3 - (meshForces[imesh].z() / M_PI / pow(top_cell_new_rad,2) * 10000.);
-                dz = pid_controllers[imesh].calculate(sigma3, abs(sigma3 - top_press_diff));
-                shift.Set(0., 0., mesh_ticks(dstep, 2*imesh)+dz);
-                gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                mesh_ticks(dstep+1, 2*imesh) = shift.z();   
-                // if (abs(top_press_diff) / sigma3 * 100. > 5.){
-                //  shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
-                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                // }
-                //else{
-                //    shift.Set( topPlate_posFunc(step-step0, 0));
-                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                //}
-                avg_top_press_diff = top_press_diff;
-            }
-            if (imesh>0 && imesh<nmeshes-1){ // tile
-                tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000;
-            //    float axial_radial_ratio = top_press_diff / tile_press_diff;
-                dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-tile_press_diff));
-                float theta = atan2(meshPositions[imesh].y(), meshPositions[imesh].x());
-                dx = dr * cos(theta);
-                dy = dr * sin(theta);
-                shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
-                gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                mesh_ticks(dstep+1,2*imesh) = shift.x();
-                mesh_ticks(dstep+1, 2*imesh+1) = shift.y();
+            tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000*F_CGS_TO_SI;
+            
+            dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-tile_press_diff) * axial_radial_ratio);
+            dx = dr * cos(meshPositions[imesh].y());
+            dy = dr * sin(meshPositions[imesh].y());
+            shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
+            
+            gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+            mesh_ticks(dstep+1,2*imesh) = shift.x();
+            mesh_ticks(dstep+1, 2*imesh+1) = shift.y();
                 
-                //if ( abs(tile_press_diff) / sigma3 * 100. > 5. and (axial_radial_ratio > 0.25 or axial_radial_ratio < 0 )){        
-                //    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, tile_press_diff/sigma3 * topmove) );
-                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                //}
-                //else{
-                //    shift.Set( tile_advancePosDr(meshPositions[imesh], dstep, imesh, 0));
-                //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
-                //}
-                average_radial_press += meshForces[imesh].x(); 
-                float tmp_tick = sqrt(pow(mesh_ticks(dstep, 2*imesh),2) + pow(mesh_ticks(dstep, 2*imesh+1),2)); // r-component
-                if (max_tick < tmp_tick){max_tick = tmp_tick;}
-                if (min_tick > tmp_tick){min_tick = tmp_tick;}
-                avg_tick += tmp_tick;
-                avg_tile_press_diff += tile_press_diff;
-
-            }
+            if (max_tick < dr){max_tick = dr;}
+            else{if (min_tick > dr){min_tick = dr;}}
+            avg_tick += dr;
+            avg_tile_press_diff += tile_press_diff;
         }
-        avg_tick /= (contacting_meshes.size() - 2);
-        avg_tile_press_diff /= (contacting_meshes.size() - 2);
-        average_radial_press /= (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) * 0.01 * M_PI * 2.f * avg_cell_new_rad * 0.01; // N.m-2=Pa
-        average_axial_press = meshForces[nmeshes-1].z() / M_PI / pow(top_cell_new_rad,2) * 10000.;
-        solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(avg_cell_new_rad,2));
+        
+        avg_tick /= contacting_meshes.size();
+        avg_tile_press_diff /= contacting_meshes.size();
+
+        float radial_axial_ratio = 1.; 
+        if (abs(axial_radial_ratio)>0.){radial_axial_ratio = 1./axial_radial_ratio ;}
+        top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
+
+        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(sigma3 - top_press_diff) * radial_axial_ratio);
+        shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
+        gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
+        mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
+        // if (abs(top_press_diff) / sigma3 * 100. > 5.){
+        //  shift.Set(topPlate_posFunc(step-step0, top_press_diff/sigma3));
+        //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+        // }
+        //else{
+        //    shift.Set( topPlate_posFunc(step-step0, 0));
+        //    gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
+        //}
+        
+        solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(new_cell_radii[2],2));
         // write position
         nc = gpu_sys.GetNumContacts();
 
         sprintf(tickout, "\n%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", 
-        step-step0, curr_time,
-        meshPositions[nmeshes-1].z(), min_cell_new_rad, max_cell_new_rad, top_cell_new_rad, avg_cell_new_rad, 
+        step-step0, curr_time, nc,
+        meshPositions[nmeshes-1].z(), new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 
         min_tick, max_tick, avg_tick,
-        average_axial_press, average_radial_press);
+        average_xr_press[0], average_xr_press[1]);
         fticks << tickout;
         
         gpu_sys.AdvanceSimulation(iteration_step);
@@ -572,10 +615,10 @@ int main(int argc, char* argv[]) {
 
             printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-10.8f; %-10.8f |", 
             step, curr_time, nc, solid_ratio, 
-            average_axial_press/1000., average_radial_press/1000.,
+            average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
-            min_cell_new_rad, max_cell_new_rad, avg_cell_new_rad, top_cell_new_rad,
-            avg_top_press_diff, avg_tile_press_diff);
+            new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 0,
+            top_press_diff, avg_tile_press_diff);
 
 
             // filenames for mesh, particles, force-per-mesh
