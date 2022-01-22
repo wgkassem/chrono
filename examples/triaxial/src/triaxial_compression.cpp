@@ -563,10 +563,10 @@ int main(int argc, char* argv[]) {
         for (unsigned int imesh : contacting_meshes){
             tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000*F_CGS_TO_SI;
             
-            dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-tile_press_diff * move_r));
+            dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-(tile_press_diff * move_r)));
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
-            shift.Set( mesh_ticks(dstep, 2*imesh), mesh_ticks(dstep, 2*imesh+1), 0. );
+            shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
             std::cout << "\ni = " << imesh << ", shift = (" << shift.x() << "," << shift.y() << ")\n"; 
             gpu_sys.ApplyMeshMotion(imesh, shift, q0, v0, w0);
             mesh_ticks(dstep+1,2*imesh) = shift.x();
@@ -607,7 +607,7 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-4.2f, %-4.2f, %4.2f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-8.7f, %-8.7f, %8.7f", 
             step, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
