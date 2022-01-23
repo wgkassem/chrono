@@ -90,6 +90,15 @@ ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
     return vcyl;
 }
 
+int sign(float x){
+    if (x<0){
+        return -1;
+    }
+    else{
+        return +1;
+    }
+}
+
 void cart2cyl_vector(std::vector<ChVector<>>& pos, std::vector<ChVector<>>& v){
     unsigned int N = pos.size();
     for (unsigned int i = 0; i < N; i++){
@@ -439,10 +448,8 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.85f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
-    float max_axial_step = params.step_size *topPlate_vel.z();
-    float min_axial_step = params.step_size * topPlate_vel.z() / 10.; 
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
         ChVector<> shift(0, 0, 0);
         shift.Set(0, 0, mesh_ticks(istep, mesh_ticks.cols()-1) + gamma * topPlate_vel.z() * step_size);
@@ -452,7 +459,7 @@ int main(int argc, char* argv[]) {
 
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
-    float tile_radial_vel = -.85; // max speed is cm.s-1
+    float tile_radial_vel = -.5; // max speed is cm.s-1
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -506,7 +513,9 @@ int main(int argc, char* argv[]) {
     float Kd_x = -Kp_x/5.; //topPlate_vel.z() / press_accl;
     
     float max_radial_step = -params.step_size * tile_radial_vel;
-    float min_radial_step = params.step_size * tile_radial_vel;
+    float min_radial_step =  params.step_size * tile_radial_vel;
+    float max_axial_step =  -params.step_size * topPlate_vel.z();
+    float min_axial_step =   params.step_size * topPlate_vel.z(); 
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
@@ -550,10 +559,15 @@ int main(int argc, char* argv[]) {
         get_radius_metrics(meshPositions, new_cell_radii, contacting_meshes);
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
-        float sp_r = sigma3;
-        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5){sp_r = average_xr_press[1];}
-        float sp_x = sigma3;
-        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5){sp_x = average_xr_press[0];}
+        float move_r = 1.;
+        int sgx = sign(sigma3 - average_xr_press[0]);
+        int sgr = sign(sigma3 - average_xr_press[1]);
+        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
+            move_r = 0.;
+        }
+        float move_x = 1.;
+        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5 and sgx == sgr){
+            move_x = 0.;}
         float move_radial = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
@@ -569,7 +583,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int imesh : contacting_meshes){
             tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000*F_CGS_TO_SI;
             
-            dr = pid_controllers[imesh].calculate(sp_r, abs(sigma3-(tile_press_diff)));
+            dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-(tile_press_diff * move_r)));
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
@@ -592,7 +606,7 @@ int main(int argc, char* argv[]) {
 
         top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
 
-        dz = pid_controllers[nmeshes-1].calculate(sp_x, abs(sigma3 - top_press_diff));
+        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(sigma3 - top_press_diff * move_x));
         shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
