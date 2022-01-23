@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.5f);
+    ChVector<> topPlate_vel(0.f, 0.f, -.75f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
     std::function<ChVector<>(unsigned int, float)> topPlate_posFunc = [&topPlate_vel, &topPlate_moveTime, &step_size, &mesh_ticks](unsigned int istep, float gamma){
         ChVector<> shift(0, 0, 0);
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
 
     // side plate move inward with velocity 1cm/s
     float sidePlate_moveTime = curr_time;
-    float tile_radial_vel = -.5; // max speed is cm.s-1
+    float tile_radial_vel = -.75; // max speed is cm.s-1
     std::function<ChVector<>(ChVector<>&, unsigned int, unsigned int, float)> tile_advancePosDr = 
     [&tile_radial_vel, &sidePlate_moveTime, &step_size, &mesh_ticks](ChVector<>& pos, unsigned int istep, unsigned int imesh, float gamma){ 
         ChVector<> delta(0.f, 0.f, 0.f);
@@ -507,8 +507,8 @@ int main(int argc, char* argv[]) {
 
 //    float press_rate = 1.; // pressure speed Pa/s
 //    float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
+    float Kp_r = -tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = -topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
     float Kd_r = -Kp_r/5.; //tile_radial_vel / press_accl;
     float Kd_x = -Kp_x/5.; //topPlate_vel.z() / press_accl;
     
