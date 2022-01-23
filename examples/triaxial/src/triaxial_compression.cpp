@@ -586,7 +586,7 @@ int main(int argc, char* argv[]) {
             tile_press = abs( meshForces[imesh].x() )/tile_base/tile_height*P_CGS_TO_SI;
             tile_press_diff = sigma3 - tile_press;
             
-            dr = pid_controllers[imesh].calculate(sigma3, tile_press * move_r);
+            dr = pid_controllers[imesh].calculate(sigma3, tile_press );
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
@@ -610,7 +610,7 @@ int main(int argc, char* argv[]) {
 
 
         top_press_diff = sigma3 - abs(average_xr_press[0]) * P_CGS_TO_SI;
-        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(average_xr_press[0] * P_CGS_TO_SI * move_x));
+        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(average_xr_press[0] * P_CGS_TO_SI));
         shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
