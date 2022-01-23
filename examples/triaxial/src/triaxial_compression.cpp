@@ -585,7 +585,7 @@ int main(int argc, char* argv[]) {
             tile_press = abs( meshForces[imesh].x() )/tile_base/tile_height*P_CGS_TO_SI;
             tile_press_diff = sigma3 - tile_press;
             
-            dr = pid_controllers[imesh].calculate(sigma3, tile_press * move_r)));
+            dr = pid_controllers[imesh].calculate(sigma3, tile_press * move_r);
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
