@@ -514,6 +514,8 @@ int main(int argc, char* argv[]) {
         pid_controllers.emplace_back(params.step_size, max_radial_step, min_radial_step, Kp_r, Kd_r, 0.);
     }
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0. ); 
+    
+    
     /*
      * Main loop thermo infor
      */
@@ -528,9 +530,13 @@ int main(int argc, char* argv[]) {
     string tmps = "\n";
     for (unsigned int i=0; i<n; i++){tmps += "-";}
     std::cout << tmps;; 
-    /*
-    * Main loop starts
+    
+    /* 
+    *  ------------------------------
+    *         Main loop starts
+    *  ------------------------------
     */    
+    
     while (curr_time < params.time_end) {
         // Collect mesh positions and forces
         unsigned int dstep = step - step0;
@@ -545,9 +551,9 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.0;
-        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.7){move_r = 0;}
+        //if (abs(average_xr_press[0] / average_xr_press[1]) < 0.7){move_r = 0;}
         float move_x = 1.0;
-        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.7){move_x = 0.;}
+        //if (abs(average_xr_press[1] / average_xr_press[0]) < 0.7){move_x = 0.;}
         float move_radial = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
