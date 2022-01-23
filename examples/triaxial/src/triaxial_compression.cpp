@@ -560,15 +560,14 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.;
-        int sgx = sign(sigma3 - average_xr_press[0]);
-        int sgr = sign(sigma3 - average_xr_press[1]);
+        int sgx = sign(sigma3 - average_xr_press[0]*P_CGS_TO_SI);
+        int sgr = sign(sigma3 - average_xr_press[1]*P_CGS_TO_SI);
         if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
             move_r = 0.;
         }
         float move_x = 1.;
         if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5 and sgx == sgr){
             move_x = 0.;}
-        float move_radial = average_xr_press[0] / average_xr_press[1];
         float tile_press_diff = 0.;
         min_tick =  1000.;
         max_tick = -1000.;
