@@ -560,8 +560,8 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.;
-        int sgr = sign(sigma3 - abs(average_xr_press[0])*P_CGS_TO_SI);
-        int sgx = sign(sigma3 - abs(average_xr_press[1])*P_CGS_TO_SI);
+        int sgr = sign(sigma3 - abs(average_xr_press[1])*P_CGS_TO_SI);
+        int sgx = sign(sigma3 - abs(average_xr_press[0])*P_CGS_TO_SI);
         if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
             move_r = 0.;
         }
