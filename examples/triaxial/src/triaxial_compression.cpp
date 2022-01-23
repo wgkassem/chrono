@@ -560,8 +560,8 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.;
-        int sgx = sign(sigma3 - average_xr_press[0]*P_CGS_TO_SI);
-        int sgr = sign(sigma3 - average_xr_press[1]*P_CGS_TO_SI);
+        int sgr = sign(sigma3 - abs(average_xr_press[0])*P_CGS_TO_SI);
+        int sgx = sign(sigma3 - abs(average_xr_press[1])*P_CGS_TO_SI);
         if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
             move_r = 0.;
         }
@@ -579,10 +579,13 @@ int main(int argc, char* argv[]) {
         float min_tile_press_diff = 1e9;
         float max_tile_press_diff = -1e9;
         float avg_tile_press_diff = 0;
+        float tile_press = 0.;
         for (unsigned int imesh : contacting_meshes){
-            tile_press_diff = sigma3 - meshForces[imesh].x()/tile_base/tile_height*10000*F_CGS_TO_SI;
+
+            tile_press = abs( meshForces[imesh].x() )/tile_base/tile_height*P_CGS_TO_SI;
+            tile_press_diff = sigma3 - tile_press;
             
-            dr = pid_controllers[imesh].calculate(sigma3, abs(sigma3-(tile_press_diff * move_r)));
+            dr = pid_controllers[imesh].calculate(sigma3, tile_press * move_r)));
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
@@ -603,9 +606,9 @@ int main(int argc, char* argv[]) {
         avg_tick /= contacting_meshes.size();
         avg_tile_press_diff /= contacting_meshes.size();
 
-        top_press_diff = sigma3 - average_xr_press[0] * P_CGS_TO_SI;
+        top_press_diff = sigma3 - abs(average_xr_press[0]) * P_CGS_TO_SI;
 
-        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(sigma3 - top_press_diff * move_x));
+        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(average_xr_press[0] * move_x));
         shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
