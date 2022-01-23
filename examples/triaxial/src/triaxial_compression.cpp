@@ -563,10 +563,10 @@ int main(int argc, char* argv[]) {
         float move_x = 1.;
         int sgr = sign(sigma3 - abs(average_xr_press[1])*P_CGS_TO_SI);
         int sgx = sign(sigma3 - abs(average_xr_press[0])*P_CGS_TO_SI);
-        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
+        if (abs(average_xr_press[0] / average_xr_press[1]) < 0.95 and sgx == sgr ){
             move_r = 0.;
         }
-        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5 and sgx == sgr){
+        if (abs(average_xr_press[1] / average_xr_press[0]) < 0.95 and sgx == sgr){
             move_x = 0.;
         }
         float tile_press_diff = 0.;
