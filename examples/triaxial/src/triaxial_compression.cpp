@@ -567,7 +567,8 @@ int main(int argc, char* argv[]) {
         }
         float move_x = 1.;
         if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5 and sgx == sgr){
-            move_x = 0.;}
+            move_x = 0.;
+        }
         float tile_press_diff = 0.;
         min_tick =  1000.;
         max_tick = -1000.;
@@ -602,13 +603,14 @@ int main(int argc, char* argv[]) {
             avg_tick += dr;
             avg_tile_press_diff += tile_press_diff;
         }
-        
         avg_tick /= contacting_meshes.size();
         avg_tile_press_diff /= contacting_meshes.size();
 
-        top_press_diff = sigma3 - abs(average_xr_press[0]) * P_CGS_TO_SI;
 
-        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(average_xr_press[0] * move_x));
+
+
+        top_press_diff = sigma3 - abs(average_xr_press[0]) * P_CGS_TO_SI;
+        dz = pid_controllers[nmeshes-1].calculate(sigma3, abs(average_xr_press[0] * P_CGS_TO_SI * move_x));
         shift.Set(0., 0., mesh_ticks(dstep, 2*nmeshes-2)+dz);
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
