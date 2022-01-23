@@ -515,7 +515,9 @@ int main(int argc, char* argv[]) {
     float max_radial_step = -10. * params.step_size * tile_radial_vel;
     float min_radial_step =  10. * params.step_size * tile_radial_vel;
     float max_axial_step =  -10. * params.step_size * topPlate_vel.z();
-    float min_axial_step =   10. * params.step_size * topPlate_vel.z(); 
+    float min_axial_step =   10. * params.step_size * topPlate_vel.z();
+    float axial_movetime = curr_time;
+    float radial_movetime = curr_time + 0.25; 
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
@@ -587,6 +589,7 @@ int main(int argc, char* argv[]) {
             tile_press_diff = sigma3 - tile_press;
             
             dr = pid_controllers[imesh].calculate(sigma3, tile_press );
+            if (curr_time < radial_movetime){dr = 0.;}
             dx = dr * cos(meshPositions[imesh].y());
             dy = dr * sin(meshPositions[imesh].y());
             shift.Set( mesh_ticks(dstep, 2*imesh)+dx, mesh_ticks(dstep, 2*imesh+1)+dy, 0. );
