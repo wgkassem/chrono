@@ -505,8 +505,8 @@ int main(int argc, char* argv[]) {
     float Kd_r = -Kp_r/5.; //tile_radial_vel / press_accl;
     float Kd_x = -Kp_x/5.; //topPlate_vel.z() / press_accl;
     
-    float max_radial_step = params.step_size * tile_radial_vel;
-    float min_radial_step = -params.step_size * tile_radial_vel;
+    float max_radial_step = -params.step_size * tile_radial_vel;
+    float min_radial_step = params.step_size * tile_radial_vel;
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;

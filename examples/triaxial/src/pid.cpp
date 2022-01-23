@@ -58,7 +58,6 @@ double PID::calculate( double setpoint, double pv )
     
     // Calculate error
     double error = setpoint - pv;
-    std::cout << "\nerror = " << error;
     // Proportional term
     double Pout = _Kp * error;
 
