@@ -638,7 +638,7 @@ int main(int argc, char* argv[]) {
             meshPositions[nmeshes-1].z(),
             new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 0.0,
             top_press_diff, avg_tile_press_diff,
-            dz, dr, move_x, move_r);
+            mesh_ticks(dstep+1, 2*nmeshes-2), dr, move_x, move_r);
 
 
             // filenames for mesh, particles, force-per-mesh
