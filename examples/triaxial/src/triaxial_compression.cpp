@@ -560,12 +560,12 @@ int main(int argc, char* argv[]) {
         get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press,contacting_meshes);
 
         float move_r = 1.;
+        float move_x = 1.;
         int sgr = sign(sigma3 - abs(average_xr_press[1])*P_CGS_TO_SI);
         int sgx = sign(sigma3 - abs(average_xr_press[0])*P_CGS_TO_SI);
         if (abs(average_xr_press[0] / average_xr_press[1]) < 0.5 and sgx == sgr ){
             move_r = 0.;
         }
-        float move_x = 1.;
         if (abs(average_xr_press[1] / average_xr_press[0]) < 0.5 and sgx == sgr){
             move_x = 0.;
         }
@@ -631,13 +631,13 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-8.7f, %-8.7f, %8.7f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-8.7f, %-8.7f, %8.7f %-8.7f", 
             step, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
             new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 0.0,
             top_press_diff, avg_tile_press_diff,
-            dr, dx, dy);
+            dz, dr, move_x, move_r);
 
 
             // filenames for mesh, particles, force-per-mesh
