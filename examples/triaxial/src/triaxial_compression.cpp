@@ -507,10 +507,10 @@ int main(int argc, char* argv[]) {
 
 //    float press_rate = 1.; // pressure speed Pa/s
 //    float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = -tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = -topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
-    float Kd_r = -Kp_r/5.; //tile_radial_vel / press_accl;
-    float Kd_x = -Kp_x/5.; //topPlate_vel.z() / press_accl;
+    float Kp_r = tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
+    float Kd_r = Kp_r/5.; //tile_radial_vel / press_accl;
+    float Kd_x = Kp_x/5.; //topPlate_vel.z() / press_accl;
     
     float max_radial_step = -params.step_size * tile_radial_vel;
     float min_radial_step =  params.step_size * tile_radial_vel;
