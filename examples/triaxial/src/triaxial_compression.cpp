@@ -517,7 +517,7 @@ int main(int argc, char* argv[]) {
     float max_axial_step =  -10. * params.step_size * topPlate_vel.z();
     float min_axial_step =   10. * params.step_size * topPlate_vel.z();
     float axial_movetime = curr_time;
-    float radial_movetime = curr_time + 0.25; 
+    float radial_movetime = curr_time + 1.0; 
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
