@@ -123,7 +123,7 @@ int get_contacting_meshes(const std::vector<ChVector<>>& pos, std::vector<unsign
 
     contacts.clear();
     unsigned int nmesh = pos.size();
-    float maxz = pos[nmesh-1].z() - 0.5;
+    float maxz = pos[nmesh-1].z();
     for (unsigned int imesh=1; imesh<nmesh-1; imesh++){
         if (pos[imesh].z() < maxz){
             contacts.push_back(imesh);
@@ -142,7 +142,7 @@ void get_radius_metrics(const std::vector<ChVector<>>& pos, float radii[3], cons
     for (unsigned int imesh : contacts){
         if (pos[imesh].x() < radii[0]){radii[0] = pos[imesh].x();}
         else {
-            if (pos[imesh].y() > radii[1]){radii[1] = pos[imesh].x();}
+            if (pos[imesh].x() > radii[1]){radii[1] = pos[imesh].x();}
         }
         radii[2] += pos[imesh].x();
     }
@@ -156,7 +156,7 @@ void get_axial_radial_pressure(const std::vector<ChVector<>>& pos, const std::ve
     float zmin = pos[0].z();
     float h = zmax-zmin;
     float avg_face_P = 2. * M_PI * radii[2];
-    float avg_face_A = 2. * M_PI * pow(radii[2],2);
+    float avg_face_A = M_PI * pow(radii[2],2);
     float sumFr = 0.;  
     for (unsigned int imesh : contacts){
         sumFr += forces[imesh].x();
