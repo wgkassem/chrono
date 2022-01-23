@@ -512,10 +512,10 @@ int main(int argc, char* argv[]) {
     float Kd_r = Kp_r/5.; //tile_radial_vel / press_accl;
     float Kd_x = Kp_x/5.; //topPlate_vel.z() / press_accl;
     
-    float max_radial_step = -params.step_size * tile_radial_vel;
-    float min_radial_step =  params.step_size * tile_radial_vel;
-    float max_axial_step =  -params.step_size * topPlate_vel.z();
-    float min_axial_step =   params.step_size * topPlate_vel.z(); 
+    float max_radial_step = -10. * params.step_size * tile_radial_vel;
+    float min_radial_step =  10. * params.step_size * tile_radial_vel;
+    float max_axial_step =  -10. * params.step_size * topPlate_vel.z();
+    float min_axial_step =   10. * params.step_size * topPlate_vel.z(); 
     std::vector<PID> pid_controllers;
     
     pid_controllers.emplace_back(params.step_size, max_axial_step, min_axial_step, Kp_x, Kd_x, 0.) ;
@@ -615,7 +615,6 @@ int main(int argc, char* argv[]) {
         gpu_sys.ApplyMeshMotion(nmeshes-1, shift, q0, v0, w0);
         mesh_ticks(dstep+1, 2*nmeshes-2) = shift.z();   
 
-
         solid_ratio = numSpheres * sphere_vol / (meshPositions[nmeshes-1].z()+cell_hgt/2.) / M_PI / (pow(new_cell_radii[2],2));
         // write position
         nc = gpu_sys.GetNumContacts();
@@ -627,7 +626,6 @@ int main(int argc, char* argv[]) {
         average_xr_press[0], average_xr_press[1]);
         fticks << tickout;
         
-        gpu_sys.AdvanceSimulation(iteration_step);
         
         if (step % out_steps == 0){
 
@@ -687,6 +685,7 @@ int main(int argc, char* argv[]) {
             if (step % 10*out_fps == 0){fticks.flush();}
         }
 
+        gpu_sys.AdvanceSimulation(iteration_step);
         step++;
         curr_time += iteration_step;
     }
