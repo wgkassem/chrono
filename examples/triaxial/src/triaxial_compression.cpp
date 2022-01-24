@@ -599,8 +599,8 @@ int main(int argc, char* argv[]) {
         // write position
         nc = gpu_sys.GetNumContacts();
 
-        sprintf(tickout, "\n%d, %6f, %d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", 
-        step-step0, curr_time, nc,
+        sprintf(tickout, "\n%d, %6f, %d, %d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f", 
+        dstep, curr_time, nc, contacting_meshes.size(), solid_ratio,
         meshPositions[nmeshes-1].z(), new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 
         min_tick, max_tick, avg_tick,
         average_xr_press[0], average_xr_press[1]);
@@ -609,13 +609,13 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-8.7f, %-8.7f, %8.7f %-8.7f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-6.5f, %-6.5f, %-6.5f", 
             dstep, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
             new_cell_radii[0], new_cell_radii[1], new_cell_radii[2], 0.0,
             top_press_diff, avg_tile_press_diff,
-            mesh_ticks(dstep, 2*nmeshes-2),mesh_ticks(dstep+1, 2*nmeshes-2), shift.z(), dz);
+            dz, dr, avg_tick);
 
 
             // filenames for mesh, particles, force-per-mesh
