@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
 
     // pressure information
     gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
-    float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
+    float sigma3 = 300.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
     cart2cyl_vector(meshPositions, meshForces);
