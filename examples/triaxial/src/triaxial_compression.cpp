@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
 
     // pressure information
     gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
-    float sigma3 = 300.f; //consolidating pressure // Pa, consolidation stress
+    float sigma3 = 500.f; //consolidating pressure // Pa, consolidation stress
     float average_xr_press[2];
     get_axial_radial_pressure(meshPositions, meshForces, new_cell_radii, average_xr_press, contacting_meshes);
     cart2cyl_vector(meshPositions, meshForces);
@@ -479,9 +479,9 @@ int main(int argc, char* argv[]) {
     float topPlate_vel =  -.75;
     float tile_radial_vel = -.75; // max speed is cm.s-1
     float Kp_r = tile_radial_vel * params.step_size / sigma3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = 2. * topPlate_vel * params.step_size / sigma3; //topPlate_vel.z() / press_rate;
+    float Kp_x = topPlate_vel * params.step_size / sigma3; //topPlate_vel.z() / press_rate;
     float Kd_r = tile_radial_vel * params.step_size * params.step_size / sigma3; //tile_radial_vel / press_accl;
-    float Kd_x = 2. * topPlate_vel * params.step_size * params.step_size / sigma3;; //topPlate_vel.z() / press_accl;
+    float Kd_x = topPlate_vel * params.step_size * params.step_size / sigma3;; //topPlate_vel.z() / press_accl;
     
     float max_radial_step = -10. * params.step_size * tile_radial_vel;
     float min_radial_step =  10. * params.step_size * tile_radial_vel;
