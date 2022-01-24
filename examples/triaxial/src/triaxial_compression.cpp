@@ -436,24 +436,18 @@ int main(int argc, char* argv[]) {
     //=============================================
     // Useful information
     unsigned int nc=0; // number of contacts
-    float step_size = params.step_size;
-    float topPlate_moveTime = curr_time;
     
     Eigen::MatrixXf mesh_ticks(total_frames - step, 2*nmeshes);
     std::ofstream fticks(out_dir+"/fticks.csv", std::ios::out); 
     
-    ChVector<> topPlate_offset(0.0f, 0.0f, -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius); // initial top plate position
-    mesh_ticks(0,2*nmeshes-2) = topPlate_offset.z();
+    float topPlate_offset =  -(params.box_Z/2.f - 5.f + cell_hgt/2.f) + (gpu_sys.GetMaxParticleZ() + cell_hgt/2.f) + params.sphere_radius; // initial top plate position
+    mesh_ticks(0,2*nmeshes-2) = topPlate_offset;
     for (unsigned int i = 0; i < 2*nmeshes-2; i++){mesh_ticks(0,i)=0.;}
     ChQuaternion<float> q0(1,0,0,0);
     
     // top plate move downward with velocity 1cm/s
-    ChVector<> topPlate_vel(0.f, 0.f, -.75f);
-    ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     // side plate move inward with velocity 1cm/s
-    float sidePlate_moveTime = curr_time;
-    float tile_radial_vel = -.75; // max speed is cm.s-1
      
     // create vectors to hold useful information on meshes
     ChVector<> myv, shift, v0, w0; v0.Set(0,0,0); w0.Set(0,0,0);
@@ -482,17 +476,17 @@ int main(int argc, char* argv[]) {
     unsigned int step0 = step;
     float solid_ratio = numSpheres*sphere_vol / cell_hgt / M_PI / pow(cell_rad,2.);
 
-//    float press_rate = 1.; // pressure speed Pa/s
-//    float press_accl = .1; // pressure acceleration Pa/s^2
-    float Kp_r = tile_radial_vel*params.step_size/sigma3; //tile_radial_vel / press_rate; // cm/Pa
-    float Kp_x = topPlate_vel.z()*params.step_size/sigma3; //topPlate_vel.z() / press_rate;
-    float Kd_r = tile_radial_vel*params.step_size*params.step_size/sigma3; //tile_radial_vel / press_accl;
-    float Kd_x = topPlate_vel.z()*params.step_size*params.step_size/sigma3;; //topPlate_vel.z() / press_accl;
+    float topPlate_vel =  -.75;
+    float tile_radial_vel = -.75; // max speed is cm.s-1
+    float Kp_r = tile_radial_vel * params.step_size / sigma3; //tile_radial_vel / press_rate; // cm/Pa
+    float Kp_x = 2. * topPlate_vel * params.step_size / sigma3; //topPlate_vel.z() / press_rate;
+    float Kd_r = tile_radial_vel * params.step_size * params.step_size / sigma3; //tile_radial_vel / press_accl;
+    float Kd_x = 2. * topPlate_vel * params.step_size * params.step_size / sigma3;; //topPlate_vel.z() / press_accl;
     
     float max_radial_step = -10. * params.step_size * tile_radial_vel;
     float min_radial_step =  10. * params.step_size * tile_radial_vel;
-    float max_axial_step =  -10. * params.step_size * topPlate_vel.z();
-    float min_axial_step =   10. * params.step_size * topPlate_vel.z();
+    float max_axial_step =  -10. * params.step_size * topPlate_vel;
+    float min_axial_step =   10. * params.step_size * topPlate_vel;
     float axial_movetime = curr_time;
     float radial_movetime = curr_time + 0.75; 
     std::vector<PID> pid_controllers;
@@ -609,7 +603,7 @@ int main(int argc, char* argv[]) {
         
         if (step % out_steps == 0){
 
-            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-6.5f, %-6.5f, %-6.5f", 
+            printf("\n%-10d | %-10.6f | %-10d | %-11.9f | %-6.5e | %-6.5e | %-10.8f | %-10.8f, %-10.8f, %-10.8f, %-10.8f | %-5.4f; %-5.4f | %-4.3e, %-4.3e, %-4.3e", 
             dstep, curr_time, nc, solid_ratio, 
             average_xr_press[0]*P_CGS_TO_SI/1000., average_xr_press[1]*P_CGS_TO_SI/1000.,
             meshPositions[nmeshes-1].z(),
