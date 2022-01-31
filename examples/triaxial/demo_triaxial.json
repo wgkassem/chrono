@@ -10,9 +10,9 @@
 	"grav_Y": 0,
 	"grav_Z": -980,
 	"step_size": 5e-5,
-    "time_end": 5.5,
+    "time_end": 10,
 
-    "normalStiffS2S": 1e7,
+    "normalStiffS2S": 3e7,
     "normalDampS2S": 1e4,
     "tangentStiffS2S": 2e6,
     "tangentDampS2S": 50,
@@ -33,13 +33,13 @@
     "adhesion_ratio_s2w": 0,
     "adhesion_ratio_s2m": 0,
 
-    "static_friction_coeffS2S": 0.25,
+    "static_friction_coeffS2S": 0.3,
     "static_friction_coeffS2W": 0,
     "static_friction_coeffS2M": 0,
     
     "verbose": false,
-    "psi_T": 32,
-    "psi_L": 16,
+    "psi_T": 20,
+    "psi_L": 10,
 
     "output_dir": "mixer_output",
     "write_mode": "csv"

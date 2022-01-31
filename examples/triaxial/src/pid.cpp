@@ -53,11 +53,11 @@ PID::PID() :
 {
 }
 
-double PID::calculate( double setpoint, double pv )
+double PID::calculate( double setpoint, double pv1 )
 {
     
     // Calculate error
-    double error = setpoint - pv;
+    double error = setpoint - pv1;
     // Proportional term
     double Pout = _Kp * error;
 

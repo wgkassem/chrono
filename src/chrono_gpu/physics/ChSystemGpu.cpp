@@ -501,9 +501,17 @@ void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh,
                                       const ChVector<>& lin_vel,
                                       const ChVector<>& ang_vel) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    sys_trimesh->ApplyMeshMotion(mesh, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
+    sys_trimesh->ApplyMeshMotion(mesh, pos.data(), rot.data(), lin_vel.data(), ang_vel.data(), 4);
 }
 
+void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh,
+                                      const ChVector<>& pos,
+                                      const ChMatrix33<>& rotscale,
+                                      const ChVector<>& lin_vel,
+                                      const ChVector<>& ang_vel) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->ApplyMeshMotion(mesh, pos.data(), rotscale.data(), lin_vel.data(), ang_vel.data(), 9);
+}
 // -----------------------------------------------------------------------------
 
 unsigned int ChSystemGpuMesh::GetNumMeshes() const {

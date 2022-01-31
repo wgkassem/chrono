@@ -124,7 +124,8 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                          const double* pos,
                          const double* rot,
                          const double* lin_vel,
-                         const double* ang_vel);
+                         const double* ang_vel,
+                         int rot_size);
 
     /// Write visualization files for triangle meshes with current positions
     void WriteMeshes(std::string outfilename,
@@ -152,7 +153,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     virtual double get_max_K() const override;
 
     template <typename T>
-    void generate_rot_matrix(const double* ep, T* rot_mat);
+    void generate_rot_matrix(const double* ep, T* rot_mat, int ep_size);
 
     static void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 

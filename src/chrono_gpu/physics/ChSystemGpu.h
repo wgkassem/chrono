@@ -335,6 +335,11 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Get Mesh coordinates by calculating the position of its center of mass
     void GetMeshPosition(int mesh, ChVector<>& position, const int& coord_sys=0) const;
     void GetMeshPositions(std::vector<ChVector<>>&, const int& ) const;
+    void ApplyMeshMotion(unsigned int mesh,
+                         const ChVector<>& pos,
+                         const ChMatrix33<>& rotscale,
+                         const ChVector<>& lin_vel,
+                         const ChVector<>& ang_vel);
   private:
     CHGPU_MESH_VERBOSITY mesh_verbosity;  ///< mesh operations verbosity level
 };

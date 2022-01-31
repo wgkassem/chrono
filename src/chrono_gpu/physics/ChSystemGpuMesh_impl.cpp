@@ -79,12 +79,12 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
 
     const double meshRot[4] = {1.,0.,0.,0.};
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
-        generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat);
+        generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat, 4);
         tri_params->fam_frame_broad[fam].pos[0] = (float)0.0;
         tri_params->fam_frame_broad[fam].pos[1] = (float)0.0;
         tri_params->fam_frame_broad[fam].pos[2] = (float)0.0;
 
-        generate_rot_matrix<double>(meshRot, tri_params->fam_frame_narrow[fam].rot_mat);
+        generate_rot_matrix<double>(meshRot, tri_params->fam_frame_narrow[fam].rot_mat, 4);
         tri_params->fam_frame_narrow[fam].pos[0] = (double)0.0;
         tri_params->fam_frame_narrow[fam].pos[1] = (double)0.0;
         tri_params->fam_frame_narrow[fam].pos[2] = (double)0.0;
@@ -196,17 +196,18 @@ void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh,
                                            const double* pos,
                                            const double* rot,
                                            const double* lin_vel,
-                                           const double* ang_vel) {
+                                           const double* ang_vel,
+                                           int rot_size) {
     // Set position and orientation
     tri_params->fam_frame_broad[mesh].pos[0] = (float)pos[0];
     tri_params->fam_frame_broad[mesh].pos[1] = (float)pos[1];
     tri_params->fam_frame_broad[mesh].pos[2] = (float)pos[2];
-    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh].rot_mat);
+    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh].rot_mat, rot_size);
 
     tri_params->fam_frame_narrow[mesh].pos[0] = pos[0];
     tri_params->fam_frame_narrow[mesh].pos[1] = pos[1];
     tri_params->fam_frame_narrow[mesh].pos[2] = pos[2];
-    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh].rot_mat);
+    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh].rot_mat, rot_size);
 
     // Set linear and angular velocity
     const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
@@ -217,16 +218,22 @@ void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh,
 }
 
 template <typename T>
-void ChSystemGpuMesh_impl::generate_rot_matrix(const double* ep, T* rot_mat) {
-    rot_mat[0] = (T)(2 * (ep[0] * ep[0] + ep[1] * ep[1] - 0.5));
-    rot_mat[1] = (T)(2 * (ep[1] * ep[2] - ep[0] * ep[3]));
-    rot_mat[2] = (T)(2 * (ep[1] * ep[3] + ep[0] * ep[2]));
-    rot_mat[3] = (T)(2 * (ep[1] * ep[2] + ep[0] * ep[3]));
-    rot_mat[4] = (T)(2 * (ep[0] * ep[0] + ep[2] * ep[2] - 0.5));
-    rot_mat[5] = (T)(2 * (ep[2] * ep[3] - ep[0] * ep[1]));
-    rot_mat[6] = (T)(2 * (ep[1] * ep[3] - ep[0] * ep[2]));
-    rot_mat[7] = (T)(2 * (ep[2] * ep[3] + ep[0] * ep[1]));
-    rot_mat[8] = (T)(2 * (ep[0] * ep[0] + ep[3] * ep[3] - 0.5));
+void ChSystemGpuMesh_impl::generate_rot_matrix(const double* ep, T* rot_mat, int ep_size) {
+
+    if (ep_size == 4){ //quternion, rigid body rotation 
+        rot_mat[0] = (T)(2 * (ep[0] * ep[0] + ep[1] * ep[1] - 0.5));
+        rot_mat[1] = (T)(2 * (ep[1] * ep[2] - ep[0] * ep[3]));
+        rot_mat[2] = (T)(2 * (ep[1] * ep[3] + ep[0] * ep[2]));
+        rot_mat[3] = (T)(2 * (ep[1] * ep[2] + ep[0] * ep[3]));
+        rot_mat[4] = (T)(2 * (ep[0] * ep[0] + ep[2] * ep[2] - 0.5));
+        rot_mat[5] = (T)(2 * (ep[2] * ep[3] - ep[0] * ep[1]));
+        rot_mat[6] = (T)(2 * (ep[1] * ep[3] - ep[0] * ep[2]));
+        rot_mat[7] = (T)(2 * (ep[2] * ep[3] + ep[0] * ep[1]));
+        rot_mat[8] = (T)(2 * (ep[0] * ep[0] + ep[3] * ep[3] - 0.5));
+    }
+    else{
+        for (unsigned int i=0; i<9; i++){ rot_mat[i] = (T) ep[i];}
+    }
 }
 
 }  // namespace gpu
