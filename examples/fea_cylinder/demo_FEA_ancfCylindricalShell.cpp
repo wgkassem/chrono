@@ -52,12 +52,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "pid.h"
-
-
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::gpu;
+using namespace chrono::geometry;
 
 bool testing = false;
 
@@ -65,7 +63,6 @@ std::string demo_dir = ".";
 std::string MESH_CONNECTIVITY = "Flex_Mesh.vtk";
 
 double dT = 1e-3; // time step
-double out_fps = 100; // output fps
 double sphere_swept_thickness = 0.008;
 
 // Output frequency
@@ -308,6 +305,9 @@ int main(int argc, char* argv[]) {
     float volume_grain = pow(params.sphere_radius,3) * M_PI * 4.f/3.f;
     float mass_grain = params.sphere_density * volume_grain; 
     unsigned int num_create_spheres = round( sample_solid_mass / mass_grain );
+    
+    cell_diam = cell_diam + params.sphere_radius;
+    cell_rad = cell_diam / 2.;
 
     // ***************************************************
     //
@@ -342,22 +342,34 @@ int main(int argc, char* argv[]) {
     //
     // *****************************************************
     
-    std::vector<ChTriangleMeshConnected> feameshes;
-    float scale_xy = cell_rad - 0.1;
-    float scale_z = cell_hgt * 0.02; 
-    float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
-    ChMatrix33<float> platen_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
+    std::vector<ChTriangleMeshConnected> feameshes(0);
+    std::vector<float> feameshmass(0);
 
-    ChVector<> platen_position(0,0,(-cell_height + platen_height)*0.5);
+    float scale_xy = cell_rad - std::min(0.02, (double) params.sphere_radius); // make sure this is smaller than the diameter of one particle
+    float scale_z = cell_height * 0.01; 
+    float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
+    ChMatrix33<double> platen_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
+
+    ChVector<> platen_position(0,0,(-cell_height + scale_z)*0.5);
 
     auto botrigidmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    botrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/cylinder.obj"));
-    botrigidmesh->GetMesh()->Transform(platen_position, platen_scale);
+    auto toprigidmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    botrigidmesh->LoadWavefrontMesh("unit_cylinder.obj", true, true); // make sure to include the normals
+    toprigidmesh->LoadWavefrontMesh("unit_cylinder.obj", true, true);
+    botrigidmesh->Transform(platen_position, platen_scale);
+    toprigidmesh->Transform(platen_position+ChVector<>(cell_diam,0,cell_height), platen_scale);
 
     auto botPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(botrigidmesh, 8000, true, true, true, surfmaterial);
+    auto topPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(toprigidmesh, 8000, true, true, true, surfmaterial);
 
-    feameshes.push_back(botrigidmesh);
+    feameshes.push_back( *botrigidmesh);
+    feameshes.push_back( *toprigidmesh);
+    feameshmass.push_back( 3000. );
+    feameshmass.push_back( 3000.);
+
+    std::cout << "Test 1" << std::endl;
     my_system.Add(botPlatenBody);
+    my_system.Add(topPlatenBody);
     
     // ***************************************************
     //
@@ -419,7 +431,15 @@ int main(int argc, char* argv[]) {
     // and nodes to them
     //
     // *******************************************************
-    
+
+    // std::vector<ChTriangleMeshConnected> radialmesh(1);
+    // We need to create the surface normals and their indices manually 
+    auto radialFEAMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    std::vector<ChVector<double>> feameshnormals;
+    std::vector<ChVector<int>> n_indices;
+    for (unsigned int inorm=0; inorm < nrots; inorm++){
+        feameshnormals.push_back( ChVector<>(-cos((float) inorm * 0. * M_PI / nrots), -sin((float) inorm * 0. * M_PI / nrots), 0.)) ;
+    }
     unsigned int nelemnts = 2 * nstacks * nrots; // 2 triangles per tile
     for (unsigned int itile=0; itile<ntiles; itile++){
         int istack = itile / nrots; // integer division
@@ -450,8 +470,30 @@ int main(int argc, char* argv[]) {
         element_lt->SetNodes( node0_lt, node1_lt, node2_lt, node3_lt, node4_lt, node5_lt);
         element_lt->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material); // add material layer, thicknes = 0.01, fiber angle = pi/2
         my_mesh->AddElement(element_lt);
+        
+        radialFEAMesh->addTriangle( element_lt->GetNodeTriangleN(0)->GetPos(), element_lt->GetNodeTriangleN(1)->GetPos(), element_lt->GetNodeTriangleN(2)->GetPos());
+        radialFEAMesh->addTriangle( element_lt->m_nodes[3]->GetPos(), element_lt->GetNodeTriangleN(2)->GetPos(), element_lt->GetNodeTriangleN(1)->GetPos());
+        n_indices.push_back(ChVector<>(itile%nrots, itile%nrots+1, itile%nrots));
+        n_indices.push_back(ChVector<int>(itile%nrots+1,  itile%nrots, itile%nrots+1));
     }
+    //radialFEAMesh->m_normals.clear();
+    radialFEAMesh->m_face_n_indices.clear();
+    //radialFEAMesh->m_normals = feameshnormals;
+    radialFEAMesh->m_face_n_indices = n_indices; 
+    
+    feameshes.push_back(*radialFEAMesh);
+    feameshmass.push_back(1000.);
+    feameshes.back().RepairDuplicateVertexes();
+    feameshes.back().m_normals = feameshnormals;
     my_mesh->SetAutomaticGravity(false);
+    std::cout << "DOne adding meshes to vector  " << feameshes.back().getNumTriangles() << " triangles" << std::endl;
+    std::cout << "vector sizes  " << feameshes.size() << " " << feameshmass.size() << std::endl;
+    std::cout << "Indices normals " << feameshes[1].m_face_n_indices.size() << " "<<feameshes[1].m_face_n_indices.size() << std::endl;
+    // return 0;
+    gpu_sys.SetMeshes(feameshes, feameshmass);
+    std::cout << "Test 2 " << std::endl;
+    gpu_sys.InitializeMeshes();
+    gpu_sys.WriteMeshes("testfeamesh");
     
     // *****************************************************************
     // 
@@ -473,13 +515,14 @@ int main(int argc, char* argv[]) {
     // (forces on nodes will be computed by an external procedure)
     my_mesh->AddMeshSurface(surfmesh);
     std::cout << "\n\n Assests on FEA Mesh " << my_mesh->GetAssets().size() << " Go for it\n";
-    myWriteMesh(my_mesh, nrots, nstacks, MESH_CONNECTIVITY);
-    
+    // myWriteMesh(my_mesh, nrots, nstacks, MESH_CONNECTIVITY);
+
     // *****************************************************************
     // 
     // Add a ball for testing
     //
     // *****************************************************************
+    
     if (testing){
         auto steel_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
         steel_mat->SetYoungModulus(200e9);
@@ -516,12 +559,12 @@ int main(int argc, char* argv[]) {
          }
     }
 
-
     // ***************************************************************
     //
     // SOLVER
     //
     // ***************************************************************
+
    if (testing){
         my_system.Setup();
         my_system.Update();
@@ -557,6 +600,7 @@ int main(int argc, char* argv[]) {
     // ======================================================    
 
     // initialize sampler, set distance between center of spheres as 2.1r
+    gpu_sys.EnableMeshCollision(true);
     utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos, initialVelo;
 
@@ -590,13 +634,11 @@ int main(int argc, char* argv[]) {
     //
     // ====================================================
 
-    gpu_sys.EnableMeshCollision(true);    
     gpu_sys.Initialize();
     unsigned int nummeshes = gpu_sys.GetNumMeshes();
     std::cout << nummeshes << " meshes generated!" << std::endl;
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
-    gpu_sys.WriteMeshes(out_dir + "/init.vtk");
     // ===================================================
     //
     // Prepare main loop parameters

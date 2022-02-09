@@ -231,7 +231,9 @@ int main(int argc, char* argv[]) {
     float volume_grain = pow(params.sphere_radius,3) * M_PI * 4.f/3.f;
     float mass_grain = params.sphere_density * volume_grain; 
     unsigned int num_create_spheres = round( sample_solid_mass / mass_grain );
-
+    
+    cell_diam = cell_diam + params.sphere_radius;
+    cell_rad = cell_diam / 2.;
     // ================================================
     //
     // Read and add the mesh(es) to the simulation
