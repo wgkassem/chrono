@@ -98,6 +98,24 @@ template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
+
+void find_neighbors(int i0, int nrots, int nstacks, std::vector<int>& nghbrs){
+    int istack = i0 / nrots;
+    int irot = i0 % nrots;
+
+    int i1 = istack * nrots + (irot+1) % nrots; // right
+    int i2 = istack < nstacks - 1 ? (istack+1)*nrots + irot : -1; //top
+    int i3 = istack < nstacks - 1 ? (istack+1)*nrots + (irot+1)%nrots : -1; //top-right
+    int i4 = istack < nstacks -1 ? (istack+1)*nrots + (irot-1)%nrots:-1; //top-left
+    int i5 = istack > 0 ? (istack-1)*nrots + (irot+1)%nrots : -1; //bottom-right
+    int i6 = istack > 0 ? (istack-1)*nrots + (irot-1)%nrots : -1; //bottom-left
+    int i7 = istack > 0 ? (istack-1)*nrots : -1; //bottom
+    int i8 = istack * nrots + (irot-1)%nrots; //left
+
+    nghbrs.clear();
+    nghbrs.insert( nghbrs.end(), {i0,i1,i2,i3,i4,i5,i6,i7,i8});
+}
+
 ChVector<> cart2cyl_vector(ChVector<>& pos, ChVector<>& v){
     ChVector<> vcyl;
 
@@ -212,30 +230,37 @@ class radialpressureloader : public ChLoaderForceOnSurface {
                 
                 //std::cout << "\nIN" << std::endl;
                 
-                std::shared_ptr<ChElementShellBST> shell = std::dynamic_pointer_cast<ChElementShellBST>(loadable);
+                auto shell = std::dynamic_pointer_cast<ChElementShellBST>(this->loadable);
                     
                     ChVector<> shell_pos;
                     ChVector<> shell_vel;
-                    shell_pos = state_x->segment(0, 3);
-                    shell_vel = state_w->segment(0, 3);
+                     if (state_x->size()>2) {
+                        shell_pos = state_x->segment(0, 3);
+                        shell_vel = state_w->segment(0, 3);
+                    } else {
+                        shell_pos = shell->GetNodeTriangleN(0)->GetPos();
+                        shell_vel =  shell->GetNodeTriangleN(0)->GetPos_dt();
+                    }
                     double norm = sqrt(shell_pos.x()*shell_pos.x() + shell_pos.y()*shell_pos.y());
                     double cs = shell_pos.x()/norm;
                     double sn = shell_pos.y()/norm;
                     
-                    
                     double area = shell->area;
-                    double f_max = this->GetPressure() * area;
+                    double f_ext = this->p * area;
                     //std::cout << "\n " << norm << ", " << acos(cs)*180./M_PI << " area = " << area << std::endl;
-                    F.segment(0,3) = ChVector<>(cs*f_max, sn*f_max,0).eigen();
+                    //std::cout << "force = " << this->GetForce() << std::endl;
+                    //std::cout << "F.sizer = " << F.size() << std::endl; 
+                    F.segment(0,3) = (this->GetForce()  + ChVector<double>(f_ext * cs, f_ext * sn, 0.)).eigen();
                     //F.segment(3,6).setZero();
+                    //std::cout << "force = " << F.segment(0,3) << std::endl;
+                    //std::cout << "nelem = " << shell->GetNodeTriangleN(0)->GetPos().z() << std::endl;
                 }
-                float GetPressure() {return this->p;}
-                void SetPressure(float ptarget){this->p = ptarget;}
-
+                // float GetPressure() {return this->p;}
+                void setUniformRadialPressure(double ptarget){this->p = ptarget;}
             virtual bool isStiff() {return true;}
 
             private:
-                float p;
+                double p = 0;
     };
 
 int main(int argc, char* argv[]) {
@@ -336,13 +361,18 @@ int main(int argc, char* argv[]) {
     surfmaterial->SetRestitution(0.2f);
     surfmaterial->SetAdhesion(0);
     
+    auto surfmaterialhard = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    surfmaterial->SetYoungModulus(6e7);
+    surfmaterial->SetFriction(0.3f);
+    surfmaterial->SetRestitution(0.2f);
+    surfmaterial->SetAdhesion(0);
     // *****************************************************
     //
     // Create the top and bottom platens
     //
     // *****************************************************
     
-    std::vector<ChTriangleMeshConnected> feameshes(0);
+    std::vector<std::shared_ptr<ChTriangleMeshConnected>> feameshes(0);
     std::vector<float> feameshmass(0);
 
     float scale_xy = cell_rad - std::min(0.02, (double) params.sphere_radius); // make sure this is smaller than the diameter of one particle
@@ -359,11 +389,13 @@ int main(int argc, char* argv[]) {
     botrigidmesh->Transform(platen_position, platen_scale);
     toprigidmesh->Transform(platen_position+ChVector<>(cell_diam,0,cell_height), platen_scale);
 
-    auto botPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(botrigidmesh, 8000, true, true, true, surfmaterial);
-    auto topPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(toprigidmesh, 8000, true, true, true, surfmaterial);
+    auto botPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(botrigidmesh, 8000, true, true, true, surfmaterialhard);
+    auto topPlatenBody = chrono_types::make_shared<ChBodyEasyMesh>(toprigidmesh, 8000, true, true, true, surfmaterialhard);
 
-    feameshes.push_back( *botrigidmesh);
-    feameshes.push_back( *toprigidmesh);
+    botPlatenBody->SetBodyFixed(true);
+
+    feameshes.push_back( botrigidmesh);
+    feameshes.push_back( toprigidmesh);
     feameshmass.push_back( 3000. );
     feameshmass.push_back( 3000.);
 
@@ -397,13 +429,15 @@ int main(int argc, char* argv[]) {
             float loc_x = cell_rad * cos(rot_angle_cw);
             float loc_y = cell_rad * sin(rot_angle_cw);
             float norm = sqrt(loc_x*loc_x + loc_y*loc_y);
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            ChVector<> pos(loc_x, loc_y, loc_z);
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(pos);
 
             // fix nodes along the z = -H/2 and z = H/2
             if (istack == 0 or istack == nstacks){node->SetFixed(true);}
             node->SetMass(0);
 
             my_mesh->AddNode(node);
+
         }
     }
     std::cout << "\nCreated " << my_mesh->GetNnodes() << " nodes\n";
@@ -434,66 +468,67 @@ int main(int argc, char* argv[]) {
 
     // std::vector<ChTriangleMeshConnected> radialmesh(1);
     // We need to create the surface normals and their indices manually 
-    auto radialFEAMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    std::vector<ChVector<double>> feameshnormals;
-    std::vector<ChVector<int>> n_indices;
-    for (unsigned int inorm=0; inorm < nrots; inorm++){
-        feameshnormals.push_back( ChVector<>(-cos((float) inorm * 0. * M_PI / nrots), -sin((float) inorm * 0. * M_PI / nrots), 0.)) ;
-    }
     unsigned int nelemnts = 2 * nstacks * nrots; // 2 triangles per tile
+    std::vector<int> nghbr;
     for (unsigned int itile=0; itile<ntiles; itile++){
-        int istack = itile / nrots; // integer division
-        int irot = itile % nrots;
-        int inode0 = itile;
-        auto node0_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode0)); 
-        auto node1_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode( (inode0 + 1) % nrots == 0 ? istack * nrots  : inode0 + 1) )  ;
-        auto node2_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode( inode0 + nrots ) );
-        auto node3_lt =std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode( (inode0+1)%nrots==0 ? (istack+1) * nrots : inode0 +1 + nrots)) ;  
-        auto node4_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode( inode0 % nrots == 0 ? (istack+1) * nrots + (nrots -1) : inode0 + nrots - 1 ));
-        std::shared_ptr<ChNodeFEAxyz> node5_lt = nullptr;
-        if (istack != 0)
-            node5_lt =  std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode( (inode0 + 1) % nrots == 0 ?  (istack - 1) * nrots : inode0 + 1 - nrots) );
         
-        if (istack == 0){
+        find_neighbors(itile, nrots, nstacks+1, nghbr); // add 1 because eventhough the element does not exist, the node still exists
+        auto node0_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[0]) ); // all these are guaranteed to be valid
+        auto node1_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[1]) );
+        auto node2_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[2]) );
+        auto node3_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[3]) );  
+        auto node4_lt = std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[4]) );
+        std::shared_ptr<ChNodeFEAxyz> node5_lt = nullptr;
+        if (itile/nrots != 0)
+            node5_lt =  std::dynamic_pointer_cast<ChNodeFEAxyz>( my_mesh->GetNode(nghbr[5]) );
+        
+        if (itile/nrots == 0){
             node0_lt->SetFixed(true);
             node1_lt->SetFixed(true);
         }
-        if (istack == nstacks -1){
+        if (itile/nrots == nstacks -1){
             node2_lt->SetFixed(true);
         }
 
-        printf("tile %d, triangle_lt, %d %d %d, %d %d %d", itile, node0_lt->GetIndex()-1, node1_lt->GetIndex()-1, node2_lt->GetIndex()-1,
-        node3_lt->GetIndex()-1, node4_lt->GetIndex()-1,  node5_lt != nullptr ? node5_lt->GetIndex()-1: -1);
-        std::cout << "\n---------------------------------------------------------------------\n";
+        // printf("tile %d, triangle_lt, %d %d %d, %d %d %d", itile, node0_lt->GetIndex()-1, node1_lt->GetIndex()-1, node2_lt->GetIndex()-1,
+        // node3_lt->GetIndex()-1, node4_lt->GetIndex()-1,  node5_lt != nullptr ? node5_lt->GetIndex()-1: -1);
+        // std::cout << "\n---------------------------------------------------------------------\n";
         
         auto element_lt = chrono_types::make_shared<ChElementShellBST>();
         element_lt->SetNodes( node0_lt, node1_lt, node2_lt, node3_lt, node4_lt, node5_lt);
         element_lt->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material); // add material layer, thicknes = 0.01, fiber angle = pi/2
         my_mesh->AddElement(element_lt);
         
-        radialFEAMesh->addTriangle( element_lt->GetNodeTriangleN(0)->GetPos(), element_lt->GetNodeTriangleN(1)->GetPos(), element_lt->GetNodeTriangleN(2)->GetPos());
-        radialFEAMesh->addTriangle( element_lt->m_nodes[3]->GetPos(), element_lt->GetNodeTriangleN(2)->GetPos(), element_lt->GetNodeTriangleN(1)->GetPos());
-        n_indices.push_back(ChVector<>(itile%nrots, itile%nrots+1, itile%nrots));
-        n_indices.push_back(ChVector<int>(itile%nrots+1,  itile%nrots, itile%nrots+1));
+        auto radialFEAMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+        
+        // push 4 nodes and 2 vectors for each GPU mesh because GPU calculates forces on meshes not mesh elements !
+        // assume each fea mesh is 2 BST triangles -- > this affects how force is to be calculated in the FEA system
+        radialFEAMesh->m_vertices.push_back( node0_lt->GetPos() );
+        radialFEAMesh->m_vertices.push_back( node1_lt->GetPos() );
+        radialFEAMesh->m_vertices.push_back( node2_lt->GetPos() );
+        radialFEAMesh->m_vertices.push_back( node3_lt->GetPos() );
+        radialFEAMesh->m_normals.push_back(-node0_lt->GetPos().GetNormalized());
+        radialFEAMesh->m_normals.push_back(-node3_lt->GetPos().GetNormalized());
+        
+        radialFEAMesh->m_face_v_indices.push_back(ChVector<int>(0, 1, 2));
+        radialFEAMesh->m_face_v_indices.push_back(ChVector<int>(3, 2, 1));
+        radialFEAMesh->m_face_n_indices.push_back(ChVector<int>(0, 1, 0));
+        radialFEAMesh->m_face_n_indices.push_back(ChVector<int>(1, 0, 1));
+        feameshes.push_back(radialFEAMesh);
+        feameshmass.push_back(1000.); // doesnt really matter
     }
-    //radialFEAMesh->m_normals.clear();
-    radialFEAMesh->m_face_n_indices.clear();
-    //radialFEAMesh->m_normals = feameshnormals;
-    radialFEAMesh->m_face_n_indices = n_indices; 
     
-    feameshes.push_back(*radialFEAMesh);
-    feameshmass.push_back(1000.);
-    feameshes.back().RepairDuplicateVertexes();
-    feameshes.back().m_normals = feameshnormals;
     my_mesh->SetAutomaticGravity(false);
-    std::cout << "DOne adding meshes to vector  " << feameshes.back().getNumTriangles() << " triangles" << std::endl;
+    std::cout << "Done adding meshes to vector  " << feameshes.back()->getNumTriangles() << " triangles" << std::endl;
     std::cout << "vector sizes  " << feameshes.size() << " " << feameshmass.size() << std::endl;
-    std::cout << "Indices normals " << feameshes[1].m_face_n_indices.size() << " "<<feameshes[1].m_face_n_indices.size() << std::endl;
+    std::cout << "Indices normals " << feameshes[1]->m_face_n_indices.size() << " "<<feameshes[1]->m_face_n_indices.size() << std::endl;
     // return 0;
-    gpu_sys.SetMeshes(feameshes, feameshmass);
-    std::cout << "Test 2 " << std::endl;
-    gpu_sys.InitializeMeshes();
-    gpu_sys.WriteMeshes("testfeamesh");
+    std::vector<ChTriangleMeshConnected> meshobjs;
+    for (auto it = feameshes.begin(); it < feameshes.end(); it++){meshobjs.push_back(**it);} // so wasteful !
+    gpu_sys.SetMeshes(meshobjs, feameshmass);
+    //std::cout << "Test 2 " << std::endl;
+    // gpu_sys.InitializeMeshes();
+    // gpu_sys.WriteMeshes("testfeamesh");
     
     // *****************************************************************
     // 
@@ -508,14 +543,13 @@ int main(int argc, char* argv[]) {
 
     auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(surfmaterial);
     my_mesh->AddContactSurface(contact_surf);
-    contact_surf->AddAllNodes(0.05);
+    contact_surf->AddAllNodes(0.005);
     printf("\n Added %d contact nodes to mesh \n", contact_surf->GetNnodes());
 
     // Create a mesh load for cosimulation, acting on the contact surface above
     // (forces on nodes will be computed by an external procedure)
     my_mesh->AddMeshSurface(surfmesh);
-    std::cout << "\n\n Assests on FEA Mesh " << my_mesh->GetAssets().size() << " Go for it\n";
-    // myWriteMesh(my_mesh, nrots, nstacks, MESH_CONNECTIVITY);
+    myWriteMesh(my_mesh, nrots, nstacks, MESH_CONNECTIVITY);
 
     // *****************************************************************
     // 
@@ -554,7 +588,7 @@ int main(int argc, char* argv[]) {
             double number = distribution(generator);        
             std::shared_ptr<ChLoad<radialpressureloader>> mpress(new ChLoad<radialpressureloader>(
             std::dynamic_pointer_cast<ChElementShellBST>(my_mesh->GetElement(ielem) ) ) );
-            mpress->loader.SetPressure(-0.2e4);
+            mpress->loader.setUniformRadialPressure(-0.2e4);
             mloadcontainer->Add(mpress);
          }
     }
@@ -565,18 +599,18 @@ int main(int argc, char* argv[]) {
     //
     // ***************************************************************
 
-   if (testing){
         my_system.Setup();
         my_system.Update();
         auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        my_system.Set_G_acc(ChVector<>(-980,0,0));
+        my_system.Set_G_acc(ChVector<>(0,0,0));
         my_system.SetSolver(solver);
-        solver->SetMaxIterations(1000);
-        solver->SetTolerance(1e-10);
+        solver->SetMaxIterations(500);
+        solver->SetTolerance(1e-5);
         solver->EnableDiagonalPreconditioner(true);
-        solver->SetVerbose(true);
-        my_system.SetSolverForceTolerance(1e-10);
-    
+        solver->SetVerbose(false);
+        my_system.SetSolverForceTolerance(1e-5);
+
+if (testing){    
         int stepEnd = 200;
         float time = 0;
         bool isAdaptive = false;
@@ -628,6 +662,15 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
+    auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
+    //my_system.Add(mloadcontainer);
+
+    for (unsigned int ielem = 0; ielem < ntiles; ielem++){
+        std::shared_ptr<ChLoad<radialpressureloader>> mpress(new ChLoad<radialpressureloader>(
+        std::dynamic_pointer_cast<ChElementShellBST>(my_mesh->GetElement(ielem) ) ) );
+        mpress->loader.setUniformRadialPressure (-1e4);
+        mloadcontainer->Add(mpress);
+    }
     // ===================================================
     //
     // Initialize
@@ -644,7 +687,9 @@ int main(int argc, char* argv[]) {
     // Prepare main loop parameters
     //
     // ===================================================
-    
+
+    std::vector<ChVector<>> meshPostions, meshForces, meshTorques; 
+
     unsigned int nmeshes = gpu_sys.GetNumMeshes(); // 122 meshes (bottom + 120 side + top) TODO: consider changing side to also just one mesh 
     unsigned int out_steps = (unsigned int)(1.0f / (out_fps * iteration_step));
     unsigned int fps = (unsigned int)(1.0f / iteration_step);
@@ -654,10 +699,49 @@ int main(int argc, char* argv[]) {
 
     unsigned int step = 0;
     float curr_time = 0;
+    float consolidation_time = 0.5;
+    bool closed = false;
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 0.5) {
+    while (curr_time < 0.6) {
         
+
+        gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
+        for (int imesh = nrots; imesh < nmeshes-2-nrots; imesh++) { 
+            //std::dynamic_pointer_cast<ChLoad<radialpressureloader>> (mloadcontainer->GetLoadList()[imesh])->loader.SetForce(meshForces[2+imesh]); // two fiirst GPU meshes are the platens
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(imesh))->SetForce(meshForces[2+imesh] - 10000.);
+        }
+
+        if (curr_time > consolidation_time){
+            if (not closed){
+                ChVector<> close_shift( cell_diam, 0., 0.5*cell_height - gpu_sys.GetMaxParticleZ() + 1.5 * params.sphere_radius);
+                ChMatrix33<> fill_platen(ChVector<>(1., 1., 1.)); // close_shift.z() ));
+                feameshes[1]->Transform(-close_shift, fill_platen);
+                closed = true;
+            }
+            else{
+                // ChVector<> close_shift( 0., 0., 0.1);
+                // ChMatrix33<> fill_platen(ChVector<>(1., 1., 1.)); // close_shift.z() ));
+                // feameshes[1]->Transform(-close_shift, fill_platen);
+            }
+            
+            my_system.DoStepDynamics(iteration_step);
+            // update the geometry of the mesh
+            for (int imesh = 2; imesh < feameshes.size()-2; imesh++){
+                find_neighbors(imesh-2, nrots, nstacks+1, nghbr); // get the neighbors i.e. 4 corners of the tile (double triangle) 
+                feameshes[imesh]->m_vertices[0] = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(nghbr[0]))->GetPos();
+                feameshes[imesh]->m_vertices[1] = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(nghbr[1]))->GetPos();
+                feameshes[imesh]->m_vertices[2] = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(nghbr[2]))->GetPos();
+                feameshes[imesh]->m_vertices[3] = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(nghbr[3]))->GetPos();
+                // no need to update the normals since they're going to be calculated by SetMeshes
+                // no need to update connectivity
+            }
+            // SaveParaViewFiles(my_system, my_mesh, step, curr_time, VNULL);           
+            meshobjs.clear();
+            for (auto it = feameshes.begin(); it < feameshes.end(); it++){meshobjs.push_back(**it);} // so wasteful !
+            gpu_sys.SetMeshes(meshobjs, feameshmass);
+            gpu_sys.InitializeMeshes();
+        }        
         if (step % out_steps == 0){
 
             // filenames for mesh, particles, force-per-mesh
@@ -666,44 +750,44 @@ int main(int argc, char* argv[]) {
             sprintf(filenamemesh, "%s/main%06d", out_dir.c_str(), step);
             sprintf(filenameforce, "%s/meshforce%06d.csv", out_dir.c_str(), step);
 
+            
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(filenamemesh);
 
             // force-per-mesh files
-            std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
+            // std::ofstream meshfrcFile(filenameforce, std::ios::out);
+            // meshfrcFile << "#imesh, r, theta, z, f_x, f_y, f_z, f_r, f_theta\n";
 
             // Pull individual mesh forces
-            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-                ChVector<> imeshforce;  // forces for each mesh
-                ChVector<> imeshtorque; //torques for each mesh
-                ChVector<> imeshforcecyl;
-                ChVector<> imeshposition;
+            // for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
+            //     ChVector<> imeshforce;  // forces for each mesh
+            //     ChVector<> imeshtorque; //torques for each mesh
+            //     ChVector<> imeshforcecyl;
+            //     ChVector<> imeshposition;
 
-                // get the force on the ith-mesh
-                gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
-                imeshforce *= F_CGS_TO_SI;                
+            //     // get the force on the ith-mesh
+            //     gpu_sys.GetMeshPosition(imesh, imeshposition, 1);
+            //     imeshforce *= F_CGS_TO_SI;                
                 
-                // change to cylinderical coordinates
-                double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
-                double thetaF = acos( imeshforce.x() / normF);
-                if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
-                if (normF < 0.0000001) {thetaF = 0.f;}
-                double cst = cos(imeshposition.y() - thetaF);
-                double snt = sin(imeshposition.y() - thetaF);
-                imeshforcecyl.Set( normF * cst, 
-                                    normF * snt,
-                                    imeshforce.z() );
+            //     // change to cylinderical coordinates
+            //     double normF = sqrt( imeshforce.x() * imeshforce.x() + imeshforce.y() * imeshforce.y());
+            //     double thetaF = acos( imeshforce.x() / normF);
+            //     if (imeshforce.y() < 0) {thetaF = 2.f * M_PI - thetaF;}
+            //     if (normF < 0.0000001) {thetaF = 0.f;}
+            //     double cst = cos(imeshposition.y() - thetaF);
+            //     double snt = sin(imeshposition.y() - thetaF);
+            //     imeshforcecyl.Set( normF * cst, 
+            //                         normF * snt,
+            //                         imeshforce.z() );
 
-                // output to mesh file(s)
-                char meshfforces[100];
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
-                    imeshposition.x(), imeshposition.y(), imeshposition.z(),
-                    imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                    imeshforcecyl.x(), imeshforcecyl.y());
-                meshfrcFile << meshfforces; 
-            }
+            //     // output to mesh file(s)
+            //     char meshfforces[100];
+            //     sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, 
+            //         imeshposition.x(), imeshposition.y(), imeshposition.z(),
+            //         imeshforce.x(), imeshforce.y(), imeshforce.z(),
+            //         imeshforcecyl.x(), imeshforcecyl.y());
+            //     meshfrcFile << meshfforces; 
+            // }
 
             printf("time = %.4f\n", curr_time);
         }
@@ -727,27 +811,19 @@ void SaveParaViewFiles(ChSystemSMC& mphysicalSystem,
                                         double mTime,
                                         const ChVector<>& ball) 
 {
-    static double exec_time;
-    int out_steps = (int)ceil((1.0 / dT) / out_fps);
-    exec_time += mphysicalSystem.GetTimerStep();
-    int num_contacts = mphysicalSystem.GetNcontacts();
-    double frame_time = 1.0 / out_fps;
-    static int out_frame = 0;
-
         char SaveAsBuffer[256];  // The filename buffer.
         snprintf(SaveAsBuffer, sizeof(char) * 256, (demo_dir + "/flex_body.%d.vtk").c_str(), next_frame);
         char MeshFileBuffer[256];  // The filename buffer.
         snprintf(MeshFileBuffer, sizeof(char) * 256, ("%s"), MESH_CONNECTIVITY.c_str());
         fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MeshFileBuffer);
-        out_frame++;
 
-    static std::string header = "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\nDATASET UNSTRUCTURED_GRID\nPOINTS 1 float";
-        char fballname[200];
-        sprintf(fballname, "sphere.%d.vtk", next_frame);
-        char content[512];
-        sprintf(content, "%s\n%6f %6f %6f", header.c_str(), ball.x(), ball.y(), ball.z());
-        std::ofstream fball(fballname, std::ios::out);
-        fball << content;
+    //static std::string header = "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\nDATASET UNSTRUCTURED_GRID\nPOINTS 1 float";
+    //    char fballname[200];
+    //    sprintf(fballname, "sphere.%d.vtk", next_frame);
+    //    char content[512];
+    //    sprintf(content, "%s\n%6f %6f %6f", header.c_str(), ball.x(), ball.y(), ball.z());
+    //    std::ofstream fball(fballname, std::ios::out);
+    //    fball << content;
     
 }
 
