@@ -668,7 +668,7 @@ if (testing){
     for (unsigned int ielem = 0; ielem < ntiles; ielem++){
         std::shared_ptr<ChLoad<radialpressureloader>> mpress(new ChLoad<radialpressureloader>(
         std::dynamic_pointer_cast<ChElementShellBST>(my_mesh->GetElement(ielem) ) ) );
-        mpress->loader.setUniformRadialPressure (-1e4);
+        mpress->loader.setUniformRadialPressure (0);
         mloadcontainer->Add(mpress);
     }
     // ===================================================
@@ -707,10 +707,10 @@ if (testing){
         
 
         gpu_sys.CollectMeshContactForces(meshForces, meshTorques);
-        for (int imesh = nrots; imesh < nmeshes-2-nrots; imesh++) { 
-            //std::dynamic_pointer_cast<ChLoad<radialpressureloader>> (mloadcontainer->GetLoadList()[imesh])->loader.SetForce(meshForces[2+imesh]); // two fiirst GPU meshes are the platens
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(imesh))->SetForce(meshForces[2+imesh] - 10000.);
-        }
+        //for (int imesh = nrots; imesh < nmeshes-2-nrots; imesh++) { 
+        //    std::dynamic_pointer_cast<ChLoad<radialpressureloader>> (mloadcontainer->GetLoadList()[imesh])->loader.SetForce(meshForces[2+imesh]); // two fiirst GPU meshes are the platens
+            //std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(imesh))->SetForce(meshForces[2+imesh] - 10000.);
+        //}
 
         if (curr_time > consolidation_time){
             if (not closed){
@@ -720,9 +720,9 @@ if (testing){
                 closed = true;
             }
             else{
-                // ChVector<> close_shift( 0., 0., 0.1);
-                // ChMatrix33<> fill_platen(ChVector<>(1., 1., 1.)); // close_shift.z() ));
-                // feameshes[1]->Transform(-close_shift, fill_platen);
+                //ChVector<> close_shift( 0., 0., 0.1);
+                //ChMatrix33<> fill_platen(ChVector<>(1., 1., 1.)); // close_shift.z() ));
+                //feameshes[1]->Transform(-close_shift, fill_platen);
             }
             
             my_system.DoStepDynamics(iteration_step);
